@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GestionnaireResultats.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Baldr</a> &gt; <a href="index.source.html" class="el_package">ca.qc.bdeb.baldr.noyau</a> &gt; <span class="el_source">GestionnaireResultats.java</span></div><h1>GestionnaireResultats.java</h1><pre class="source lang-java linenums">package ca.qc.bdeb.baldr.noyau;
+
+import java.util.TreeMap;
+
+/**
+ * Gestionnaire de listes de résultats.
+ *
+ * @author Olivier Lavigne
+ */
+public class GestionnaireResultats {
+    
+    TreeMap&lt;PreferencesAnalyse, ListeResultats&gt; listes;
+
+    /**
+     * Instasncie un gestionnaire de listes de résultats
+     */
+<span class="fc" id="L17">    public GestionnaireResultats() {</span>
+<span class="fc" id="L18">        listes = new TreeMap();</span>
+<span class="fc" id="L19">    }</span>
+    
+    /**
+     * retourne la liste à utiliser en fonction des préférences en vigueur
+     * 
+     * @param preferences les préférences d'analyse associées à la tâche
+     * @return La liste de résultats appropriée
+     */
+    public synchronized ListeResultats obtenirListe(PreferencesAnalyse preferences) {
+        
+<span class="fc bfc" id="L29" title="All 2 branches covered.">        if (listes.containsKey(preferences)) {</span>
+<span class="fc" id="L30">            return listes.get(preferences);</span>
+        } else {
+<span class="fc" id="L32">            ListeResultats nouvelleListe = new ListeResultats();</span>
+<span class="fc" id="L33">            listes.put(preferences, nouvelleListe);</span>
+<span class="fc" id="L34">            return nouvelleListe;</span>
+        }
+    }
+    
+    /**
+     * retourne la liste à utiliser en fonction des préférences en vigueur
+     * 
+     * @param prefs gestionnaire préférences par lequel obtenir les préférences
+     * actives
+     * @return La liste de résultats appropriée
+     */
+    public synchronized ListeResultats obtenirListe(GestionnairePreferences prefs) {
+<span class="nc" id="L46">        return obtenirListe(new PreferencesAnalyse(prefs));</span>
+    }
+    
+    public synchronized ListeResultats obtenirListe(Task t) { //obtenirListe avec les options du task
+<span class="fc" id="L50">        return obtenirListe(new PreferencesAnalyse(t));</span>
+    }
+    
+    /**
+     * Classe décrivant un ensemble de préférences
+     */
+    class PreferencesAnalyse implements Comparable&lt;PreferencesAnalyse&gt; {
+        private boolean concatenation;
+        private boolean commentaires;
+        private boolean whitespaces;
+        private boolean extraireTextePDF;
+        private boolean extraireImagesPDF;
+        
+<span class="fc" id="L63">        public PreferencesAnalyse (Task t){</span>
+<span class="fc" id="L64">            this.concatenation  = t.getJCheckBoxAnalyseConcatenation();</span>
+<span class="fc" id="L65">            this.commentaires = t.getCheckBoxCommentaires();</span>
+<span class="fc" id="L66">            this.whitespaces = t.getCheckBoxWhitepsaces();</span>
+<span class="fc" id="L67">            this.extraireTextePDF = t.getPdfExtractor();</span>
+<span class="fc" id="L68">            this.extraireImagesPDF = t.getPdfImages();</span>
+            
+<span class="fc" id="L70">        }</span>
+        
+        /**
+         * Crée une instance de préférences d'analyse en lisant les préférences
+         * dans le gestionnaire de péférences donné
+         * @param prefs gestionnaire à partir duquel on lira les préférences
+         */
+<span class="fc" id="L77">        public PreferencesAnalyse(GestionnairePreferences prefs) {</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">            if (prefs != null) {</span>
+<span class="fc" id="L79">                this.concatenation = (Boolean) prefs.readPref(&quot;CONCATENATION&quot;, false);</span>
+<span class="fc" id="L80">                this.commentaires = (Boolean) prefs.readPref(&quot;COMMENTAIRES&quot;, false);</span>
+<span class="fc" id="L81">                this.whitespaces = (Boolean) prefs.readPref(&quot;WHITESPACES&quot;, false);</span>
+<span class="fc" id="L82">                this.extraireTextePDF = (Boolean) prefs.readPref(&quot;EXTRACT_PDF&quot;, false);</span>
+<span class="fc" id="L83">                this.extraireImagesPDF = (Boolean) prefs.readPref(&quot;EXTRACT_IMG&quot;, false);</span>
+            }
+<span class="fc" id="L85">        }</span>
+
+        @Override
+        public boolean equals(Object obj) {
+<span class="fc bfc" id="L89" title="All 2 branches covered.">            if (!(obj instanceof PreferencesAnalyse)) {</span>
+<span class="fc" id="L90">                return false;</span>
+            }
+            
+<span class="fc" id="L93">            PreferencesAnalyse autrePref = (PreferencesAnalyse)obj;</span>
+            
+<span class="pc bpc" id="L95" title="5 of 10 branches missed.">            return (autrePref.concatenation == concatenation &amp;&amp; </span>
+                    autrePref.commentaires == commentaires &amp;&amp; 
+                    autrePref.whitespaces == whitespaces &amp;&amp;
+                    autrePref.extraireTextePDF == extraireTextePDF &amp;&amp;
+                    autrePref.extraireImagesPDF == extraireImagesPDF);
+        }
+
+        @Override
+        public int compareTo(PreferencesAnalyse o) {
+<span class="fc bfc" id="L104" title="All 2 branches covered.">            if (o.concatenation != concatenation) {</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">                return (concatenation ? -1 : 1);</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">            } else if (o.commentaires != commentaires) {</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">                return (commentaires ? -1 : 1);</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">            } else if (o.whitespaces != whitespaces) {</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">                return (whitespaces ? -1 : 1);</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">            } else if (o.extraireTextePDF != extraireTextePDF) {</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">                return (extraireTextePDF ? -1 : 1);</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">            } else if (o.extraireImagesPDF != extraireImagesPDF) {</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">                return (extraireImagesPDF ? -1 : 1);</span>
+            } else {
+<span class="fc" id="L115">                return 0;</span>
+            }
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

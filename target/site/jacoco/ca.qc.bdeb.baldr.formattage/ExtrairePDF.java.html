@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExtrairePDF.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Baldr</a> &gt; <a href="index.source.html" class="el_package">ca.qc.bdeb.baldr.formattage</a> &gt; <span class="el_source">ExtrairePDF.java</span></div><h1>ExtrairePDF.java</h1><pre class="source lang-java linenums">package ca.qc.bdeb.baldr.formattage;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
+import org.apache.pdfbox.util.PDFTextStripper;
+
+/**
+ *
+ * @author 1662835
+ */
+<span class="fc" id="L18">public class ExtrairePDF {</span>
+    
+    public String  ExtrairePDF (File file) throws IOException {
+//        URL  url = Main.class.getResource(&quot;/test.pdf&quot;);        
+<span class="nc" id="L22">        PDDocument doc = PDDocument.load(file);</span>
+<span class="nc" id="L23">        PDFTextStripper stripper = new PDFTextStripper();</span>
+<span class="nc" id="L24">        int pages = doc.getNumberOfPages();</span>
+<span class="nc" id="L25">        stripper.setLineSeparator(&quot;\n&quot;);</span>
+<span class="nc" id="L26">        stripper.setStartPage(1);</span>
+<span class="nc" id="L27">        stripper.setEndPage(pages);</span>
+<span class="nc" id="L28">        String s = stripper.getText(doc);</span>
+<span class="nc" id="L29">        doc.close();</span>
+<span class="nc" id="L30">        return s;</span>
+    }
+    
+    /**
+     * Extrait les images d'un fichier pdf et en retourne une représentation
+     * courte sous forme de chaîne de caractères (hash)
+     * @param fichier fichier pdf à analyser
+     * @return String représentant grossièrement le contenu du fichier
+     * @throws IOException 
+     */
+    public String extraireImages(File fichier) throws IOException {
+<span class="nc" id="L41">        PDDocument doc = PDDocument.load(fichier);</span>
+<span class="nc" id="L42">        List pages = doc.getDocumentCatalog().getAllPages();</span>
+<span class="nc" id="L43">        Iterator iterPages = pages.iterator();</span>
+<span class="nc" id="L44">        StringBuilder sb = new StringBuilder();</span>
+        
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        while( iterPages.hasNext() )</span>
+        {
+<span class="nc" id="L48">            PDPage page = (PDPage)iterPages.next();</span>
+<span class="nc" id="L49">            Map objets = page.findResources().getXObjects();</span>
+            
+<span class="nc bnc" id="L51" title="All 2 branches missed.">            if( objets != null )</span>
+            {
+<span class="nc" id="L53">                Iterator iterObjets = objets.keySet().iterator();</span>
+                
+<span class="nc bnc" id="L55" title="All 2 branches missed.">                while(iterObjets.hasNext()) {</span>
+<span class="nc" id="L56">                    String key = (String)iterObjets.next();</span>
+<span class="nc" id="L57">                    Object objet = objets.get(key);</span>
+                    
+<span class="nc bnc" id="L59" title="All 2 branches missed.">                    if (objet instanceof PDXObjectImage) {</span>
+<span class="nc" id="L60">                        sb.append('\n');</span>
+<span class="nc" id="L61">                        sb.append(getHashProportionnel((PDXObjectImage)(objet)));</span>
+                    }
+<span class="nc" id="L63">                }</span>
+            }
+<span class="nc" id="L65">        }</span>
+        
+<span class="nc" id="L67">        doc.close();</span>
+<span class="nc" id="L68">        return sb.toString();</span>
+    }
+    
+    /**
+     * Traduit une image en une chaîne de caractères de longueur proportionnelle
+     * au nombre de pixels que contient l'image.
+     * @param image image à convertir
+     * @return résultat du hachage
+     * @throws IOException 
+     */
+    private String getHashProportionnel(PDXObjectImage image) throws IOException {
+<span class="nc" id="L79">        BufferedImage buff = image.getRGBImage();</span>
+        
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (buff == null) {</span>
+<span class="nc" id="L82">            return &quot;&quot;;</span>
+        }
+        
+<span class="nc" id="L85">        int[] pixels = buff.getRGB(</span>
+                0,
+                0,
+<span class="nc" id="L88">                buff.getWidth(), </span>
+<span class="nc" id="L89">                buff.getHeight(), </span>
+                null, 
+                0, 
+<span class="nc" id="L92">                buff.getWidth());</span>
+        
+<span class="nc" id="L94">        int nbPixels = pixels.length;</span>
+        
+        // La pondération de l'image est proportionnelle à la taille du hash
+<span class="nc" id="L97">        int tailleHash = (int)Math.sqrt(nbPixels);</span>
+        
+<span class="nc" id="L99">        int pixelsParLettre = nbPixels / tailleHash + 1;</span>
+<span class="nc" id="L100">        char[] hash = new char[tailleHash];</span>
+<span class="nc" id="L101">        int numeroLettre = 0;</span>
+<span class="nc" id="L102">        int numeroPixel = 0;</span>
+<span class="nc" id="L103">        int groupePixels = 0;</span>
+        
+        do {
+<span class="nc" id="L106">            groupePixels += pixels[numeroPixel];</span>
+<span class="nc" id="L107">            numeroPixel++;</span>
+            
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            if (numeroPixel % pixelsParLettre == 0) {</span>
+                
+                /*
+                 * TODO: améliorer pour donner un résultat plus similaire lorque
+                 * seulement quelques pixels changent
+                 */
+<span class="nc" id="L115">                hash[numeroLettre] = </span>
+<span class="nc" id="L116">                        (char)('a' + Math.abs(groupePixels / pixelsParLettre) % 26);</span>
+                
+<span class="nc" id="L118">                groupePixels = 0;</span>
+<span class="nc" id="L119">                numeroLettre++;</span>
+            }
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        } while (numeroPixel &lt; nbPixels);</span>
+        
+<span class="nc" id="L123">        return String.valueOf(hash);</span>
+    }
+    
+    /**
+     * Traduit une image en une chaîne de caractères de longueur fixe
+     * en découpant l'image en secteurs rectangulaires.
+     * @param image image à convertir
+     * @return résultat du hachage
+     * @throws IOException 
+     */
+    private String getHashParSecteurs (PDXObjectImage image) throws IOException {
+<span class="nc" id="L134">        BufferedImage buff = image.getRGBImage();</span>
+<span class="nc" id="L135">        int largeurImage = buff.getWidth();</span>
+<span class="nc" id="L136">        int hauteurImage = buff.getHeight();</span>
+<span class="nc" id="L137">        int base = 75;</span>
+<span class="nc" id="L138">        char[] hash = new char[base * base];</span>
+<span class="nc" id="L139">        int largeurRectangle = largeurImage / base;</span>
+<span class="nc" id="L140">        int hauteurRectangle = hauteurImage / base;</span>
+        
+<span class="nc" id="L142">        int indexLettre = 0;</span>
+        
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        for (int i = 0; i &lt; base; i++) {</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">            for (int j = 0; j &lt; base; j++) {</span>
+<span class="nc" id="L146">                int origX = j * largeurRectangle;</span>
+<span class="nc" id="L147">                int origY = i * hauteurRectangle;</span>
+                
+                int largeurSection = 
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                        (j + 1 &lt; base) ? largeurRectangle : largeurImage - origX;</span>
+                
+                int hauteurSection = 
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                        (i + 1 &lt; base) ? hauteurRectangle : hauteurImage - origY;</span>
+                
+<span class="nc" id="L155">                int[] pixels = </span>
+<span class="nc" id="L156">                        buff.getRGB(</span>
+                                origX, 
+                                origY, 
+                                largeurSection, 
+                                hauteurSection, 
+                                null, 
+                                0, 
+                                largeurSection);
+                
+<span class="nc" id="L165">                int totalPixels = 0;</span>
+                
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                for (int pixel : pixels) {</span>
+<span class="nc" id="L168">                    totalPixels += pixel;</span>
+                }
+                
+<span class="nc" id="L171">                hash[indexLettre] = </span>
+<span class="nc" id="L172">                        (char)('a' + Math.abs(totalPixels / pixels.length) % 26);</span>
+                
+<span class="nc" id="L174">                indexLettre++;</span>
+            }
+        }
+        
+<span class="nc" id="L178">        return String.valueOf(hash);</span>
+    }
+}
+
+    
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

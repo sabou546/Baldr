@@ -1,0 +1,1951 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Task.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Baldr</a> &gt; <a href="index.source.html" class="el_package">ca.qc.bdeb.baldr.noyau</a> &gt; <span class="el_source">Task.java</span></div><h1>Task.java</h1><pre class="source lang-java linenums">/*
+ * Task.java
+ *
+ * Created on 14 avril 2007, 18:20
+ *$Id: Task.java 254 2007-09-23 15:21:42Z zeta $
+ */
+package ca.qc.bdeb.baldr.noyau;
+
+import ca.qc.bdeb.baldr.formattage.CommentParser;
+import ca.qc.bdeb.baldr.formattage.ExtrairePDF;
+import ca.qc.bdeb.baldr.utils.Observation;
+import static ca.qc.bdeb.baldr.utils.Observation.*;
+import ca.qc.bdeb.baldr.main.Main;
+import ca.qc.bdeb.baldr.utils.FilePair;
+import ca.qc.bdeb.baldr.utils.Observable;
+import ca.qc.bdeb.baldr.utils.Observateur;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.math.BigInteger;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.zip.GZIPOutputStream;
+import org.apache.commons.io.FilenameUtils;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.security.*;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.w3c.dom.Element;
+
+/**
+ * Représente une tâche d'analyse dans le programme.
+ *
+ * @author zeta
+ */
+public class Task implements Savable, Observable, Cloneable {
+
+    /**
+     * Les préférences associées au projet.
+     */
+    private GestionnairePreferences prefs;
+    private boolean bPreview;
+    private boolean bConcatenation;
+    private boolean bCommentaires;
+    private boolean bWhiteSpaces;
+    private boolean bExtrairePDF;
+    private boolean bExtraireImagePDF;
+
+<span class="fc" id="L67">    private boolean checkBoxCommentaires = false;</span>
+<span class="fc" id="L68">    private boolean checkBoxWhitepsaces = true;</span>
+<span class="fc" id="L69">    private boolean jCheckBoxPreviewFiles = true;</span>
+<span class="fc" id="L70">    private boolean jCheckBoxAnalyseConcatenation = false;</span>
+<span class="fc" id="L71">    private boolean pdfExtractor = true;</span>
+<span class="fc" id="L72">    private boolean pdfImages = true;</span>
+<span class="fc" id="L73">    private double redLimit = 0;</span>
+<span class="fc" id="L74">    private String redLimitTxt = &quot;0.0&quot;;</span>
+<span class="fc" id="L75">    private double yellowLimit = 0;</span>
+<span class="fc" id="L76">    private String yellowLimitTxt = &quot;0.0&quot;;</span>
+<span class="fc" id="L77">    private double greenLimit = 0;</span>
+<span class="fc" id="L78">    private String greenLimitTxt = &quot;1.0&quot;;</span>
+<span class="fc" id="L79">    private boolean isProgressive = true;</span>
+    private boolean invalide;
+
+    public double getRedLimit() {
+<span class="nc" id="L83">        return redLimit;</span>
+    }
+
+    public String getRedLimitTxt() {
+<span class="fc" id="L87">        return redLimitTxt;</span>
+    }
+
+    public void setRedLimit(double newValue) {
+<span class="fc" id="L91">        redLimit = newValue;</span>
+<span class="fc" id="L92">    }</span>
+
+    public void setRedLimitTxt(String t) {
+<span class="fc" id="L95">        redLimitTxt = t;</span>
+<span class="fc" id="L96">    }</span>
+
+    public void setRedLimitTxt(String t, char nouv) {
+<span class="nc" id="L99">        redLimitTxt = t + nouv;</span>
+<span class="nc" id="L100">    }</span>
+
+    public double getYellowLimit() {
+<span class="nc" id="L103">        return yellowLimit;</span>
+    }
+
+    public String getYellowLimitTxt() {
+<span class="fc" id="L107">        return yellowLimitTxt;</span>
+    }
+
+    public void setYellowLimit(double newValue) {
+<span class="fc" id="L111">        yellowLimit = newValue;</span>
+<span class="fc" id="L112">    }</span>
+
+    public void setYellowLimitTxt(String t) {
+<span class="fc" id="L115">        yellowLimitTxt = t;</span>
+<span class="fc" id="L116">    }</span>
+
+    public void setYellowLimitTxt(String t, char nouv) {
+<span class="nc" id="L119">        yellowLimitTxt = t + nouv;</span>
+<span class="nc" id="L120">    }</span>
+
+    public double getGreenLimit() {
+<span class="nc" id="L123">        return greenLimit;</span>
+    }
+
+    public String getGreenLimitTxt() {
+<span class="fc" id="L127">        return greenLimitTxt;</span>
+    }
+
+    public void setGreenLimit(double newValue) {
+<span class="fc" id="L131">        greenLimit = newValue;</span>
+<span class="fc" id="L132">    }</span>
+
+    public void setGreenLimitTxt(String t) {
+<span class="fc" id="L135">        greenLimitTxt = t;</span>
+<span class="fc" id="L136">    }</span>
+
+    public void setGreenLimitTxt(String t, char nouv) {
+<span class="nc" id="L139">        greenLimitTxt = t + nouv;</span>
+<span class="nc" id="L140">    }</span>
+
+    public boolean getIsProgressive() {
+<span class="fc" id="L143">        return isProgressive;</span>
+    }
+
+    public void setIsProgressive(boolean newValue) {
+<span class="fc" id="L147">        isProgressive = newValue;</span>
+<span class="fc" id="L148">    }</span>
+
+    public boolean getJCheckBoxPreviewFiles() {
+<span class="fc" id="L151">        return jCheckBoxPreviewFiles;</span>
+    }
+
+    public void setJCheckBoxPreviewFiles(boolean newValue) {
+<span class="fc" id="L155">        jCheckBoxPreviewFiles = newValue;</span>
+<span class="fc" id="L156">    }</span>
+
+    public boolean getJCheckBoxAnalyseConcatenation() {
+<span class="fc" id="L159">        return jCheckBoxAnalyseConcatenation;</span>
+    }
+
+    public void setJCheckBoxAnalyseConcatenation(boolean newValue) {
+<span class="fc" id="L163">        jCheckBoxAnalyseConcatenation = newValue;</span>
+<span class="fc" id="L164">    }</span>
+
+    public boolean getPdfExtractor() {
+<span class="fc" id="L167">        return pdfExtractor;</span>
+    }
+
+    public void setPdfExtractor(boolean newValue) {
+<span class="fc" id="L171">        pdfExtractor = newValue;</span>
+<span class="fc" id="L172">    }</span>
+
+    public boolean getPdfImages() {
+<span class="fc" id="L175">        return pdfImages;</span>
+    }
+
+    public void setPdfImages(boolean newValue) {
+<span class="fc" id="L179">        pdfImages = newValue;</span>
+<span class="fc" id="L180">    }</span>
+
+    /**
+     * Le rapport de l'analyse.
+     */
+    private String rapport;
+
+    /**
+     * Le nom de l'analyse.
+     */
+    private String titre;
+
+    /**
+     * La liste des taches qui composent une analyse sommaire
+     */
+<span class="fc" id="L195">    protected List&lt;Task&gt; tachesComposantes = null;</span>
+
+    /**
+     * Les fichiers de l'analyse.
+     */
+    protected List&lt;File&gt; fichiersAnalyse;
+
+    /**
+     * Les fichiers originaux de l'analyse (la liste de tous les fichiers visés
+     * par cette tâche).
+     */
+    private List&lt;File&gt; fichiersOriginaux;
+
+    /**
+     * Les fichiers de l'analyse incluant les fichiers cachés
+     */
+    private List&lt;File&gt; listeFichiersComplete;
+    private String IDTache;
+
+    /**
+     * Les résultats de l'analyse.
+     */
+    private GestionnaireResultats gestionnaireResultats;
+    private ListeResultats listeResultats;
+    private MatriceTriangulaire resultatsAnalyse;
+    private MatriceTriangulaire resultatsComplets;
+    private Map&lt;File, Long&gt; precalculatedFiles;
+    private Map&lt;FilePair, Long&gt; precalculatedPairs;
+    private List&lt;Observateur&gt; observateurs;
+
+    /**
+     * Les différentes sources couvertes par cette tâche.
+     */
+    private Map&lt;File, List&lt;File&gt;&gt; sources;
+
+    /**
+     * Indique si des fichiers de l'analyse ont été cachés
+     */
+    private boolean contientFichiersCaches;
+
+    /**
+     * Indique si l'analyse doit se faire par concaténation ou non.
+     */
+<span class="fc" id="L238">    private boolean analyseConcatenation = false;</span>
+
+    // Préférances sur le type d'analyse
+<span class="fc" id="L241">    private boolean enleverCommentaires = false;</span>
+<span class="fc" id="L242">    private boolean enleverWhitespaces = false;</span>
+
+    /**
+     * S'il n'y a qu'un seul ancêtre commun à tous les fichiers, est un tableau
+     * d'un élément qui correspond à cet ancêtre commun. Sinon, contient les
+     * multiples ancêtres communs (sous Windows, ce serait les multiples
+     * racines, par exemple C:, D:, etc.).
+     */
+<span class="fc" id="L250">    private File[] filesCommonAncestors = null;</span>
+
+    private float state;
+    private float medianeErr;
+    /**
+     * Vrai si l'interface a restauré cette analyse (par exemple, après un
+     * import).
+     */
+    private boolean estRestauree;
+
+<span class="fc" id="L260">    private boolean modifie = false;</span>
+
+    private boolean analyseEnCours;
+
+    private ExtrairePDF pdfExtractore;
+
+<span class="fc" id="L266">    private boolean erreurRestauration = false;</span>
+
+    public GestionnairePreferences getPrefs() {
+<span class="fc" id="L269">        return prefs;</span>
+    }
+
+    public List&lt;File&gt; getListeFichiersComplete() {
+<span class="nc" id="L273">        return listeFichiersComplete;</span>
+    }
+
+    /**
+     * Lit dans le fichier xml ouvert si le fichier est sommaire avec l'attribut
+     * sommaire de &quot;&lt; titre &gt;&quot;
+     *
+     * @param node
+     * @return
+     */
+    public boolean xmlEstSommaire(Node node) {
+<span class="fc" id="L284">        String sommaire = &quot;&quot;;</span>
+<span class="fc" id="L285">        boolean xmlSommaire = false;</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">        for (int i = 0; i &lt; node.getChildNodes().getLength(); i++) {</span>
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">            if (node.getChildNodes().item(i).getNodeName() != null) {</span>
+<span class="fc bfc" id="L288" title="All 3 branches covered.">                switch (node.getChildNodes().item(i).getNodeName()) {</span>
+                    case &quot;titre&quot;:
+<span class="fc" id="L290">                        titre = node.getChildNodes().item(i).getTextContent();</span>
+<span class="fc" id="L291">                        sommaire = node.getChildNodes().item(i).getAttributes().getNamedItem(&quot;sommaire&quot;).getNodeValue();</span>
+<span class="fc bfc" id="L292" title="All 2 branches covered.">                        if (sommaire.equals(&quot;True&quot;)) {</span>
+<span class="fc" id="L293">                            xmlSommaire = true;</span>
+                        }
+                        break;
+                    case &quot;analys&quot;:
+<span class="fc" id="L297">                        NodeList analyse</span>
+<span class="fc" id="L298">                                = node.getChildNodes().item(i).getChildNodes();</span>
+<span class="fc" id="L299">                        setFileListFromXMLNodeSommaire(analyse);</span>
+                        break;
+                }
+            }
+        }
+<span class="fc" id="L304">        return xmlSommaire;</span>
+    }
+
+    /**
+     * Permet de récupérer les options spécifiques /* d'un sommaire /* Auteur:
+     * Victor Gontar
+    *
+     */
+    private void setFileListFromXMLNodeSommaire(NodeList analyse) {
+<span class="fc bfc" id="L313" title="All 2 branches covered.">        for (int j = 0; j &lt; analyse.getLength(); j++) {</span>
+<span class="fc bfc" id="L314" title="All 2 branches covered.">            switch (analyse.item(j).getNodeName()) {</span>
+                case &quot;optspecifiques&quot;:
+<span class="fc" id="L316">                    NodeList optSpec = analyse.item(j).getChildNodes();</span>
+<span class="fc bfc" id="L317" title="All 2 branches covered.">                    for (int i = 0; i &lt; optSpec.getLength(); i++) {</span>
+<span class="fc bfc" id="L318" title="All 11 branches covered.">                        switch (optSpec.item(i).getNodeName()) {</span>
+                            case &quot;preview&quot;:
+<span class="fc" id="L320">                                jCheckBoxPreviewFiles = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L321">                                break;</span>
+                            case &quot;concatenation&quot;:
+<span class="fc" id="L323">                                jCheckBoxAnalyseConcatenation = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L324">                                break;</span>
+                            case &quot;extrairepdf&quot;:
+<span class="fc" id="L326">                                pdfExtractor = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L327">                                break;</span>
+                            case &quot;extraireimages&quot;:
+<span class="fc" id="L329">                                pdfImages = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L330">                                break;</span>
+                            case &quot;commentaires&quot;:
+<span class="fc" id="L332">                                checkBoxCommentaires = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L333">                                break;</span>
+                            case &quot;whitespaces&quot;:
+<span class="fc" id="L335">                                checkBoxWhitepsaces = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L336">                                break;</span>
+                            case &quot;progressive&quot;:
+<span class="fc" id="L338">                                isProgressive = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L339">                                break;</span>
+                            case &quot;redlimit&quot;:
+                                  try {
+<span class="fc" id="L342">                                redLimit = Double.parseDouble(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L343">                                redLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="nc" id="L344">                            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L345">                                redLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="fc" id="L346">                            }</span>
+<span class="nc" id="L347">                            break;</span>
+                            case &quot;yellowlimit&quot;:
+                                  try {
+<span class="fc" id="L350">                                yellowLimit = Double.parseDouble(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L351">                                yellowLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="nc" id="L352">                            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L353">                                yellowLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="fc" id="L354">                            }</span>
+<span class="nc" id="L355">                            break;</span>
+                            case &quot;greenlimit&quot;:
+                                  try {
+<span class="fc" id="L358">                                greenLimit = Double.parseDouble(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L359">                                greenLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="nc" id="L360">                            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L361">                                greenLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="fc" id="L362">                            }</span>
+                            break;
+                        }
+                    }
+                    break;
+            }
+        }
+<span class="fc" id="L369">    }</span>
+
+    /**
+     * Crée une nouvelle instance de Task.
+     */
+<span class="fc" id="L374">    public Task() {</span>
+<span class="fc" id="L375">        titre = &quot;Analyse&quot;;</span>
+<span class="fc" id="L376">        rapport = &quot;&quot;;</span>
+<span class="fc" id="L377">        fichiersAnalyse = new ArrayList();</span>
+<span class="fc" id="L378">        fichiersOriginaux = new ArrayList();</span>
+<span class="fc" id="L379">        precalculatedFiles = new HashMap();</span>
+<span class="fc" id="L380">        precalculatedPairs = new HashMap();</span>
+<span class="fc" id="L381">        observateurs = new ArrayList();</span>
+<span class="fc" id="L382">        sources = new HashMap();</span>
+<span class="fc" id="L383">        estRestauree = false;</span>
+<span class="fc" id="L384">        analyseEnCours = false;</span>
+<span class="fc" id="L385">        pdfExtractore = new ExtrairePDF();</span>
+<span class="fc" id="L386">        gestionnaireResultats = new GestionnaireResultats();</span>
+<span class="fc" id="L387">        IDTache = &quot;NotSaved&quot;;</span>
+
+<span class="fc" id="L389">    }</span>
+
+    public String getIDTache() {
+<span class="nc" id="L392">        return IDTache;</span>
+    }
+
+    public void setIDTache(String id) {
+<span class="nc" id="L396">        IDTache = id;</span>
+<span class="nc" id="L397">    }</span>
+
+    public boolean getCheckBoxCommentaires() {
+<span class="fc" id="L400">        return checkBoxCommentaires;</span>
+    }
+
+    public void setCheckBoxCommentaires(boolean newValue) {
+<span class="fc" id="L404">        checkBoxCommentaires = newValue;</span>
+<span class="fc" id="L405">    }</span>
+
+    public boolean getCheckBoxWhitepsaces() {
+<span class="fc" id="L408">        return checkBoxWhitepsaces;</span>
+    }
+
+    public void setCheckBoxWhitepsaces(boolean newValue) {
+<span class="fc" id="L412">        checkBoxWhitepsaces = newValue;</span>
+<span class="fc" id="L413">    }</span>
+
+    @Override
+    public Task clone() throws CloneNotSupportedException {
+<span class="fc" id="L417">        super.clone();</span>
+
+<span class="fc" id="L419">        Task copie = new Task();</span>
+
+<span class="fc" id="L421">        copie.rapport = rapport;</span>
+<span class="fc" id="L422">        copie.titre = titre + &quot; - copie&quot;;</span>
+
+<span class="pc bpc" id="L424" title="1 of 2 branches missed.">        if (fichiersAnalyse != null) {</span>
+<span class="fc" id="L425">            copie.fichiersAnalyse = new ArrayList(fichiersAnalyse);</span>
+        }
+
+<span class="pc bpc" id="L428" title="1 of 2 branches missed.">        if (fichiersOriginaux != null) {</span>
+<span class="fc" id="L429">            copie.fichiersOriginaux = new ArrayList(fichiersOriginaux);</span>
+        }
+
+<span class="fc" id="L432">        copie.prefs = prefs;</span>
+
+<span class="pc bpc" id="L434" title="1 of 2 branches missed.">        if (resultatsAnalyse != null) {</span>
+<span class="fc" id="L435">            copie.resultatsAnalyse = resultatsAnalyse.clone();</span>
+        }
+
+<span class="pc bpc" id="L438" title="1 of 2 branches missed.">        if (precalculatedFiles != null) {</span>
+<span class="fc" id="L439">            copie.precalculatedFiles = new HashMap(precalculatedFiles);</span>
+        }
+
+<span class="pc bpc" id="L442" title="1 of 2 branches missed.">        if (precalculatedPairs != null) {</span>
+<span class="fc" id="L443">            copie.precalculatedPairs = new HashMap(precalculatedPairs);</span>
+        }
+
+<span class="pc bpc" id="L446" title="1 of 2 branches missed.">        if (observateurs != null) {</span>
+<span class="fc" id="L447">            copie.observateurs = new ArrayList(observateurs);</span>
+        }
+
+<span class="pc bpc" id="L450" title="1 of 2 branches missed.">        if (sources != null) {</span>
+<span class="fc" id="L451">            copie.sources = new HashMap(sources);</span>
+        }
+
+<span class="pc bpc" id="L454" title="1 of 2 branches missed.">        if (filesCommonAncestors != null) {</span>
+<span class="fc" id="L455">            copie.filesCommonAncestors = filesCommonAncestors.clone();</span>
+        }
+
+<span class="fc" id="L458">        copie.state = state;</span>
+<span class="fc" id="L459">        copie.medianeErr = medianeErr;</span>
+<span class="fc" id="L460">        copie.estRestauree = estRestauree;</span>
+
+<span class="fc" id="L462">        return copie;</span>
+    }
+
+    /**
+     * Permet de donner un autre gestionnaire de résultats à la tâche que celui
+     * qu'elle crée automatiquement
+     *
+     * @param result Le gestionnaire de résultats à utiliser
+     */
+    public void setGestionnaireResultats(GestionnaireResultats result) {
+<span class="fc" id="L472">        gestionnaireResultats = result;</span>
+<span class="fc" id="L473">    }</span>
+
+    /**
+     * Permet de modifier les fichiers à partir d'une liste de fichiers
+     * existante.
+     *
+     * @param fichiers
+     */
+    public void setFichiers(List&lt;File&gt; fichiers) {
+<span class="fc" id="L482">        setFichiers(fichiers, true);</span>
+<span class="fc" id="L483">    }</span>
+
+    /**
+     * Permet de modifier l'attribut files à partir d'un tableau de fichiers
+     * existant, en spécifiant si les résultats doivent être réinitialisés ou
+     * non.
+     *
+     * @param nouveauxFichiers
+     * @param resetRes Si les résultats doivent être réinitialisés
+     */
+    public void setFichiers(List&lt;File&gt; nouveauxFichiers, boolean resetRes) {
+<span class="fc bfc" id="L494" title="All 2 branches covered.">        if (nouveauxFichiers != null) {</span>
+<span class="fc" id="L495">            fichiersAnalyse = new ArrayList(nouveauxFichiers);</span>
+<span class="fc" id="L496">            fichiersOriginaux = new ArrayList(nouveauxFichiers);</span>
+        } else {
+<span class="fc" id="L498">            fichiersAnalyse = new ArrayList();</span>
+<span class="fc" id="L499">            fichiersOriginaux = new ArrayList();</span>
+
+<span class="fc" id="L501">            return; // Pas de traitement nécessaire.</span>
+        }
+
+<span class="pc bpc" id="L504" title="1 of 4 branches missed.">        if (fichiersAnalyse != null &amp;&amp; fichiersAnalyse.size() &gt; 0) {</span>
+<span class="fc" id="L505">            File commonAncestor = extractCommonAncestor();</span>
+
+<span class="fc bfc" id="L507" title="All 2 branches covered.">            if (commonAncestor == null) {</span>
+<span class="fc" id="L508">                filesCommonAncestors = findAllRoots();</span>
+            } else {
+<span class="fc" id="L510">                filesCommonAncestors = new File[]{commonAncestor};</span>
+            }
+
+<span class="fc bfc" id="L513" title="All 2 branches covered.">            if (resetRes) {</span>
+<span class="fc" id="L514">                resultatsAnalyse</span>
+<span class="fc" id="L515">                        = new MatriceTriangulaire(fichiersAnalyse.size());</span>
+            }
+        }
+
+<span class="fc" id="L519">        modifie = true;</span>
+<span class="fc" id="L520">    }</span>
+
+    /**
+     * Dans le tableau de fichiers, donne la partie du chemin qui est commune à
+     * tous les fichiers.
+     *
+     * @return Objet {@link java.io.File} représentant ce chemin, ou
+     * {@code null} s'il n'en existe pas.
+     */
+    private File extractCommonAncestor() {
+<span class="fc" id="L530">        List&lt;String&gt; pathSimilaire = new ArrayList();</span>
+<span class="fc" id="L531">        String[] pathInitial = fichiersAnalyse.get(0).getAbsolutePath()</span>
+<span class="fc" id="L532">                .split(Main.regexFileSeparator);</span>
+<span class="fc" id="L533">        boolean pareil = true;</span>
+
+        // Vérifier le chemin nom par nom
+<span class="fc bfc" id="L536" title="All 4 branches covered.">        for (int i = 0; i &lt; pathInitial.length - 1 &amp;&amp; pareil; i++) {</span>
+<span class="fc" id="L537">            pareil = true;</span>
+
+<span class="fc bfc" id="L539" title="All 2 branches covered.">            for (File file : fichiersAnalyse) {</span>
+<span class="fc" id="L540">                String[] pathTest</span>
+<span class="fc" id="L541">                        = file.getAbsolutePath().split(Main.regexFileSeparator);</span>
+
+<span class="pc bpc" id="L543" title="1 of 2 branches missed.">                if (pathTest.length &lt;= i</span>
+<span class="fc bfc" id="L544" title="All 2 branches covered.">                        || !pathInitial[i].equals(pathTest[i])) {</span>
+<span class="fc" id="L545">                    pareil = false;</span>
+                }
+<span class="fc" id="L547">            }</span>
+
+<span class="fc bfc" id="L549" title="All 2 branches covered.">            if (pareil) {</span>
+<span class="fc" id="L550">                pathSimilaire.add(pathInitial[i]);</span>
+            }
+        }
+
+<span class="fc" id="L554">        StringBuilder sb = new StringBuilder();</span>
+
+<span class="pc bpc" id="L556" title="2 of 4 branches missed.">        if (Main.isUnix || Main.isMac) {</span>
+<span class="nc" id="L557">            sb.append(File.separator);</span>
+        }
+
+<span class="fc bfc" id="L560" title="All 2 branches covered.">        for (String string : pathSimilaire) {</span>
+<span class="fc" id="L561">            sb.append(string);</span>
+<span class="fc" id="L562">            sb.append(File.separator);</span>
+<span class="fc" id="L563">        }</span>
+
+<span class="fc bfc" id="L565" title="All 2 branches covered.">        if (pathSimilaire.isEmpty()) {</span>
+<span class="fc" id="L566">            return null;</span>
+        } else {
+<span class="fc" id="L568">            return new File(sb.toString());</span>
+        }
+    }
+
+    private File[] findAllRoots() {
+<span class="fc" id="L573">        Set&lt;File&gt; roots = new HashSet();</span>
+
+<span class="fc bfc" id="L575" title="All 2 branches covered.">        for (File file : fichiersOriginaux) {</span>
+<span class="fc" id="L576">            roots.add(file.toPath().getRoot().toFile());</span>
+<span class="fc" id="L577">        }</span>
+
+<span class="fc" id="L579">        return roots.toArray(new File[0]);</span>
+    }
+
+    private OutputStream makeComp(OutputStream compresseurFichier,
+            File file) throws IOException {
+<span class="fc" id="L584">        FileInputStream lecteurFichier = new FileInputStream(file);</span>
+<span class="fc" id="L585">        BufferedInputStream bufferIn = new BufferedInputStream(lecteurFichier);</span>
+
+        // La plupart des systèmes de fichiers fonctionnent par blocs
+        // de 4096 ou 8192 octets. On prend une chance avec le bloc supérieur,
+        // dans le but d'améliorer les performances par rapport à d'autres
+        // tailles, puisque cette étape du traitement est la plus lourde.
+<span class="fc" id="L591">        byte[] tampon = new byte[8192];</span>
+        int len;
+
+<span class="pc bpc" id="L594" title="1 of 2 branches missed.">        if (FilenameUtils.getExtension(file.getPath()).equals(&quot;pdf&quot;)) {</span>
+<span class="nc bnc" id="L595" title="All 2 branches missed.">            if ((Boolean) prefs.readPref(&quot;EXTRACT_PDF&quot;, false)) {</span>
+<span class="nc" id="L596">                compresseurFichier.write(pdfExtractore.ExtrairePDF(file).getBytes());</span>
+            }
+
+<span class="nc bnc" id="L599" title="All 2 branches missed.">            if ((Boolean) prefs.readPref(&quot;EXTRACT_IMG&quot;, false)) {</span>
+<span class="nc" id="L600">                compresseurFichier.write(pdfExtractore.extraireImages(file).getBytes());</span>
+            }
+        } else {
+            // Enlever commentaires du fichier d'analyse
+<span class="fc bfc" id="L604" title="All 2 branches covered.">            if (enleverCommentaires) {</span>
+
+<span class="fc" id="L606">                enleverCommentaires(file, bufferIn, compresseurFichier, tampon);</span>
+
+                // Enlever lignes blanches du fichier d'analyse
+<span class="fc bfc" id="L609" title="All 2 branches covered.">            } else if (enleverWhitespaces) {</span>
+
+<span class="fc" id="L611">                enleverWhitespaces(file, bufferIn, compresseurFichier, tampon);</span>
+
+                // Analyse du fichier normal
+            } else {
+
+<span class="fc bfc" id="L616" title="All 2 branches covered.">                while ((len = bufferIn.read(tampon)) &gt; 0) {</span>
+<span class="fc" id="L617">                    compresseurFichier.write(tampon, 0, len);</span>
+                }
+            }
+        }
+<span class="fc" id="L621">        bufferIn.close();</span>
+
+<span class="fc" id="L623">        return compresseurFichier;</span>
+    }
+
+    private void enleverCommentaires(File file, BufferedInputStream bufferIn,
+            OutputStream compresseurFichier, byte[] tampon) throws IOException {
+
+        int codeChar;
+        String output;
+
+        byte[] res;
+<span class="fc" id="L633">        int pos = 0;</span>
+
+<span class="fc" id="L635">        CommentParser parser = new CommentParser(file);</span>
+<span class="fc bfc" id="L636" title="All 2 branches covered.">        while ((codeChar = bufferIn.read()) != -1) {</span>
+<span class="fc" id="L637">            parser.lireCaractere((char) codeChar);</span>
+<span class="fc" id="L638">            output = parser.retournerCaractereChaine();</span>
+
+            // temp
+<span class="fc bfc" id="L641" title="All 2 branches covered.">            if (codeChar == 10) {</span>
+<span class="fc" id="L642">                output = new StringBuilder(output).append(&quot;\n&quot;).toString();</span>
+            }
+
+<span class="fc bfc" id="L645" title="All 2 branches covered.">            if (!output.isEmpty()) {</span>
+<span class="fc" id="L646">                res = output.getBytes();</span>
+
+<span class="pc bpc" id="L648" title="1 of 2 branches missed.">                if (pos + res.length &gt;= tampon.length) {</span>
+<span class="nc" id="L649">                    compresseurFichier.write(tampon, 0, pos);</span>
+<span class="nc" id="L650">                    compresseurFichier.write(res);</span>
+
+<span class="nc" id="L652">                    pos = 0;</span>
+                } else {
+<span class="fc bfc" id="L654" title="All 2 branches covered.">                    for (int i = 0; i &lt; res.length; i++) {</span>
+<span class="fc" id="L655">                        tampon[pos++] = res[i];</span>
+                    }
+                }
+            }
+        }
+
+<span class="pc bpc" id="L661" title="1 of 2 branches missed.">        if (pos &gt; 0) {</span>
+<span class="fc" id="L662">            compresseurFichier.write(tampon, 0, pos + 1);</span>
+        }
+<span class="fc" id="L664">    }</span>
+
+    private void enleverWhitespaces(File file, BufferedInputStream bufferIn,
+            OutputStream compresseurFichier, byte[] tampon) throws IOException {
+
+<span class="fc" id="L669">        String ligne = &quot;&quot;;</span>
+
+<span class="fc" id="L671">        Scanner scannerIn = new Scanner(bufferIn);</span>
+
+<span class="fc bfc" id="L673" title="All 2 branches covered.">        while (scannerIn.hasNext()) {</span>
+
+<span class="fc" id="L675">            ligne = scannerIn.nextLine();</span>
+
+<span class="fc bfc" id="L677" title="All 2 branches covered.">            if (!(ligne.trim().isEmpty())) {</span>
+<span class="fc" id="L678">                tampon = ligne.getBytes();</span>
+<span class="fc" id="L679">                compresseurFichier.write(tampon);</span>
+            }
+        }
+<span class="fc" id="L682">    }</span>
+
+    /**
+     * Détermine le poids d'un fichier gunzippé seul.
+     *
+     * @param file Le fichier à anlyser.
+     * @return La taille du fichier gunzippé.
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    private long calculateGZipSize(File file)
+            throws IOException, FileNotFoundException {
+<span class="fc" id="L694">        long ret = 0;</span>
+
+<span class="fc bfc" id="L696" title="All 4 branches covered.">        if (!enleverCommentaires &amp;&amp; precalculatedFiles.containsKey(file)) {</span>
+<span class="fc" id="L697">            return precalculatedFiles.get(file);</span>
+        }
+
+<span class="fc" id="L700">        OutputStreamSizer calcTaille = new OutputStreamSizer();</span>
+<span class="fc" id="L701">        GZIPOutputStream compresseurFichier = new GZIPOutputStream(calcTaille);</span>
+
+<span class="fc" id="L703">        makeComp(compresseurFichier, file);</span>
+
+<span class="fc" id="L705">        compresseurFichier.close();</span>
+
+<span class="fc" id="L707">        ret = calcTaille.getSize();</span>
+
+<span class="fc" id="L709">        calcTaille.close();</span>
+
+<span class="fc bfc" id="L711" title="All 2 branches covered.">        if (!enleverCommentaires) {</span>
+<span class="fc" id="L712">            precalculatedFiles.put(file, ret);</span>
+        }
+
+<span class="fc" id="L715">        return ret;</span>
+    }
+
+    /**
+     * Détermine le poids d'une paire de fichiers gunzippés ensembles.
+     *
+     * @param file1 Le premier fichier à analyser.
+     * @param file2 Le deuxième fichier à analyser.
+     * @return Le poids des deux fichiers gunzippés ensembles.
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    private long calculateGZipSize(File file1, File file2)
+            throws IOException, FileNotFoundException {
+<span class="fc" id="L729">        long ret = 0;</span>
+<span class="fc" id="L730">        FilePair pair = new FilePair(file1, file2);</span>
+
+//        if (!enleverCommentaires &amp;&amp; precalculatedPairs.containsKey(pair)) {
+//            return precalculatedPairs.get(pair);
+//        }
+<span class="fc" id="L735">        OutputStreamSizer compression = new OutputStreamSizer();</span>
+<span class="fc" id="L736">        BufferedOutputStream fichierBuffer</span>
+                = new BufferedOutputStream(compression);
+<span class="fc" id="L738">        GZIPOutputStream compresseurFichier</span>
+                = new GZIPOutputStream(fichierBuffer);
+
+<span class="fc" id="L741">        makeComp(compresseurFichier, file1);</span>
+<span class="fc" id="L742">        makeComp(compresseurFichier, file2);</span>
+
+<span class="fc" id="L744">        compresseurFichier.close();</span>
+
+<span class="fc" id="L746">        ret = compression.getSize();</span>
+
+<span class="fc" id="L748">        compression.close();</span>
+
+<span class="fc bfc" id="L750" title="All 2 branches covered.">        if (!enleverCommentaires) {</span>
+<span class="fc" id="L751">            precalculatedPairs.put(pair, ret);</span>
+        }
+
+<span class="fc" id="L754">        return ret;</span>
+    }
+
+    /**
+     * Détermine le poids d'un fichier gunzippé seul.
+     *
+     * @return Le poids du fichier gunzippé.
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    private long calculateGZipSize(List&lt;File&gt; source)
+            throws IOException, FileNotFoundException {
+<span class="fc" id="L766">        long ret = 0;</span>
+
+<span class="fc" id="L768">        OutputStreamSizer compression = new OutputStreamSizer();</span>
+<span class="fc" id="L769">        GZIPOutputStream compresseurFichier = new GZIPOutputStream(compression);</span>
+
+<span class="fc bfc" id="L771" title="All 2 branches covered.">        for (File fichier : source) {</span>
+<span class="fc" id="L772">            makeComp(compresseurFichier, fichier);</span>
+<span class="fc" id="L773">        }</span>
+
+<span class="fc" id="L775">        compresseurFichier.close();</span>
+
+<span class="fc" id="L777">        ret = compression.getSize();</span>
+
+<span class="fc" id="L779">        compression.close();</span>
+
+<span class="fc" id="L781">        return ret;</span>
+    }
+
+    /**
+     * Détermine le poids d'une paire de fichiers gunzippés ensembles.
+     *
+     * @return Le poids des deux fichiers gunzippés ensembles.
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    private long calculateGZipSize(List&lt;File&gt; source1, List&lt;File&gt; source2)
+            throws IOException, FileNotFoundException {
+<span class="fc" id="L793">        long ret = 0;</span>
+
+<span class="fc" id="L795">        OutputStreamSizer compression = new OutputStreamSizer();</span>
+<span class="fc" id="L796">        BufferedOutputStream fichierBuffer</span>
+                = new BufferedOutputStream(compression);
+<span class="fc" id="L798">        GZIPOutputStream compresseurFichier</span>
+                = new GZIPOutputStream(fichierBuffer);
+
+<span class="fc bfc" id="L801" title="All 2 branches covered.">        for (File fichier : source1) {</span>
+<span class="fc" id="L802">            makeComp(compresseurFichier, fichier);</span>
+<span class="fc" id="L803">        }</span>
+<span class="fc bfc" id="L804" title="All 2 branches covered.">        for (File fichier : source2) {</span>
+<span class="fc" id="L805">            makeComp(compresseurFichier, fichier);</span>
+<span class="fc" id="L806">        }</span>
+
+<span class="fc" id="L808">        compresseurFichier.close();</span>
+
+<span class="fc" id="L810">        ret = compression.getSize();</span>
+
+<span class="fc" id="L812">        compression.close();</span>
+
+<span class="fc" id="L814">        return ret;</span>
+    }
+
+    /**
+     * Retire plusieurs fichiers de l'analyse
+     *
+     * @param fichiers les fichiers à retirer
+     */
+    public void retirerFichiers(List&lt;File&gt; fichiers) {
+<span class="fc bfc" id="L823" title="All 2 branches covered.">        for (File fichier : fichiers) {</span>
+<span class="fc" id="L824">            retirerFichierEtMettreAJourMatrice(fichier);</span>
+<span class="fc" id="L825">        }</span>
+<span class="fc" id="L826">    }</span>
+
+    /**
+     * L'analyse consiste en la comparaison 1 par 1 chaque fichier. Imaginons la
+     * liste de fichier A, B, et C, il compare alors A avec B, A avec C, B avec
+     * A, B avec C, C avec A, et C avec B.
+     */
+    private void faireAnalyseNormale() {
+
+        //nombre de fichiers analysés
+<span class="fc" id="L836">        int nbrFichiers = fichiersAnalyse.size();</span>
+
+<span class="fc bfc" id="L838" title="All 2 branches covered.">        for (int i = 0; i &lt; nbrFichiers; i++) {</span>
+            // Annulation ?
+<span class="fc bfc" id="L840" title="All 2 branches covered.">            if (Thread.interrupted()) {</span>
+<span class="fc" id="L841">                aviserObservateurs();</span>
+<span class="fc" id="L842">                return;</span>
+            }
+
+<span class="fc bfc" id="L845" title="All 2 branches covered.">            for (int j = 0; j &lt; i; j++) {</span>
+                try {
+<span class="fc" id="L847">                    float resultat = calculerResultat(i, j, false); //false, pas de concatenation</span>
+<span class="fc" id="L848">                    resultatsAnalyse.setRes(i, j, resultat);</span>
+<span class="fc" id="L849">                    increaseState();</span>
+<span class="nc" id="L850">                } catch (IOException ex) {</span>
+
+<span class="fc" id="L852">                }</span>
+            }
+        }
+<span class="fc" id="L855">    }</span>
+
+    private void faireAnalyseConcatenation() {
+<span class="fc" id="L858">        int nbrFichiers = sources.size();</span>
+
+<span class="fc bfc" id="L860" title="All 2 branches covered.">        for (int i = 0; i &lt; nbrFichiers; i++) {</span>
+
+<span class="fc bfc" id="L862" title="All 2 branches covered.">            for (int j = 0; j &lt; i; j++) {</span>
+                // Annulation ?
+<span class="fc bfc" id="L864" title="All 2 branches covered.">                if (Thread.interrupted()) {</span>
+<span class="fc" id="L865">                    aviserObservateurs();</span>
+<span class="fc" id="L866">                    return;</span>
+                }
+
+                try {
+<span class="fc" id="L870">                    float resultat = calculerResultat(i, j, true); //true, concatenation</span>
+<span class="fc" id="L871">                    resultatsAnalyse.setRes(i, j, resultat);</span>
+<span class="fc" id="L872">                    increaseState();</span>
+<span class="nc" id="L873">                } catch (IOException ex) {</span>
+<span class="fc" id="L874">                }</span>
+            }
+        }
+<span class="fc" id="L877">    }</span>
+
+    private float calculerResultat(int i, int j, boolean concatenation) throws IOException {
+
+        //resultat de l'analyse
+<span class="fc" id="L882">        float resultat = 0;</span>
+<span class="fc" id="L883">        long tailleFichier1GZip = 0;</span>
+<span class="fc" id="L884">        long tailleFichier2GZip = 0;</span>
+<span class="fc" id="L885">        long tailleFichier1et2GZip = 0;</span>
+
+<span class="fc" id="L887">        File fichier1 = fichiersAnalyse.get(i);</span>
+<span class="fc" id="L888">        File fichier2 = fichiersAnalyse.get(j);</span>
+
+<span class="fc" id="L890">        List&lt;File&gt; liste1 = sources.get(fichiersAnalyse.get(i));</span>
+<span class="fc" id="L891">        List&lt;File&gt; liste2 = sources.get(fichiersAnalyse.get(j));</span>
+
+        /**
+         * L'analyse ne va pas comparer fichier1 et fichier2 s'ils ont la même
+         * provenance.
+         */
+<span class="pc bpc" id="L897" title="1 of 2 branches missed.">        if (!verifierSiMemeSource(fichier1, fichier2)) {</span>
+
+            //si le resultat de l'analyse de fichier1 et fichier2 existe déjà
+<span class="fc bfc" id="L900" title="All 2 branches covered.">            if (listeResultats.resultatExiste(fichier1, fichier2)) {</span>
+<span class="fc" id="L901">                resultat = listeResultats.getResultat(fichier1, fichier2);</span>
+            } else {
+
+<span class="fc bfc" id="L904" title="All 2 branches covered.">                if (concatenation) {</span>
+<span class="fc" id="L905">                    tailleFichier1GZip = calculateGZipSize(liste1);</span>
+<span class="fc" id="L906">                    tailleFichier2GZip = calculateGZipSize(liste2);</span>
+                } else {
+<span class="fc" id="L908">                    tailleFichier1GZip = calculateGZipSize(fichier1);</span>
+<span class="fc" id="L909">                    tailleFichier2GZip = calculateGZipSize(fichier2);</span>
+                }
+
+<span class="pc bpc" id="L912" title="1 of 2 branches missed.">                if (resultatsAnalyse.getRes(i, j) == -1) {</span>
+
+<span class="fc bfc" id="L914" title="All 2 branches covered.">                    if (concatenation) {</span>
+<span class="fc" id="L915">                        tailleFichier1GZip = calculateGZipSize(liste1);</span>
+
+<span class="fc" id="L917">                        tailleFichier1et2GZip</span>
+<span class="fc" id="L918">                                = calculateGZipSize(liste1, liste2);</span>
+                    } else {
+<span class="fc" id="L920">                        tailleFichier1et2GZip</span>
+<span class="fc" id="L921">                                = calculateGZipSize(fichier1, fichier2);</span>
+                    }
+
+<span class="fc" id="L924">                    resultat = java.lang.Math.min(1F, 1F</span>
+                            - (float) (tailleFichier1GZip
+                            + tailleFichier2GZip
+                            - tailleFichier1et2GZip)
+<span class="fc" id="L928">                            / (float) java.lang.Math.max(</span>
+                                    tailleFichier1GZip,
+                                    tailleFichier2GZip));
+
+<span class="fc" id="L932">                    listeResultats.ajouterResultat(</span>
+                            fichier1, fichier2, resultat);
+                }
+            }
+        }
+<span class="fc" id="L937">        return resultat;</span>
+    }
+
+    /**
+     * Lance l'analyse
+     */
+    public void lancerAnalyse() {
+<span class="fc bfc" id="L944" title="All 2 branches covered.">        if (prefs != null) {</span>
+<span class="fc" id="L945">            boolean cat = (Boolean) prefs.readPref(&quot;CONCATENATION&quot;, false);</span>
+<span class="fc bfc" id="L946" title="All 2 branches covered.">            if (!(Boolean) prefs.readPref(&quot;PROGRESSIVE&quot;, false)) {</span>
+<span class="fc" id="L947">                prefs.writePref(&quot;PROGRESSIVE&quot;, true);</span>
+            }
+<span class="pc bpc" id="L949" title="1 of 4 branches missed.">            if (cat &amp;&amp; !sources.isEmpty()) {</span>
+<span class="fc" id="L950">                fichiersAnalyse = new ArrayList(sources.keySet());</span>
+            } else {
+<span class="fc" id="L952">                fichiersAnalyse = new ArrayList(fichiersOriginaux);</span>
+            }
+
+<span class="fc" id="L955">            analyseConcatenation = cat;</span>
+
+            // Vérifier si options d'enlever les commentaires et activée
+<span class="fc" id="L958">            enleverCommentaires = checkBoxCommentaires;</span>
+
+            // Vérifier si options d'enlever les commentaires et activée
+<span class="fc" id="L961">            enleverWhitespaces = checkBoxWhitepsaces;</span>
+
+<span class="fc" id="L963">        } else { // Pas de préférences gérées (par exemple : pendant un test).</span>
+<span class="fc bfc" id="L964" title="All 4 branches covered.">            if (analyseConcatenation &amp;&amp; !sources.isEmpty()) {</span>
+<span class="fc" id="L965">                fichiersAnalyse = new ArrayList(sources.keySet());</span>
+            } else {
+<span class="fc" id="L967">                fichiersAnalyse = new ArrayList(fichiersOriginaux);</span>
+            }
+        }
+
+<span class="fc" id="L971">        state = 0;</span>
+<span class="fc" id="L972">        resultatsAnalyse = new MatriceTriangulaire(fichiersAnalyse.size());</span>
+<span class="fc" id="L973">        listeResultats = gestionnaireResultats.obtenirListe(this);</span>
+
+<span class="fc" id="L975">        analyseEnCours = true;</span>
+        
+<span class="fc bfc" id="L977" title="All 4 branches covered.">        if (analyseConcatenation &amp;&amp; !sources.isEmpty()) {</span>
+            // faireAnalyseNormale();
+<span class="fc" id="L979">            faireAnalyseConcatenation();</span>
+        } else {
+<span class="fc" id="L981">            faireAnalyseNormale();</span>
+        }
+
+<span class="fc" id="L984">        state = 1;</span>
+<span class="fc" id="L985">        analyseEnCours = false;</span>
+<span class="fc" id="L986">        modifie = true;</span>
+<span class="fc" id="L987">        aviserObservateurs(ANALYSE_TERMINEE, this);</span>
+        
+<span class="fc" id="L989">    }</span>
+
+    private void setExRes(List&lt;File&gt; exfiles, float[][] exresults) {
+<span class="fc" id="L992">        Map&lt;File, Integer&gt; exFilesTempo = new HashMap();</span>
+
+<span class="fc bfc" id="L994" title="All 2 branches covered.">        for (int i = 0; i &lt; exfiles.size(); i++) {</span>
+<span class="fc" id="L995">            exFilesTempo.put(exfiles.get(i), i);</span>
+        }
+
+<span class="fc" id="L998">        List&lt;File&gt; fichiers = null;</span>
+<span class="pc bpc" id="L999" title="1 of 2 branches missed.">        if (sources.size() &gt; 0) {</span>
+<span class="nc" id="L1000">            fichiers = new ArrayList&lt;&gt;(sources.keySet());</span>
+        } else {
+<span class="fc" id="L1002">            fichiers = fichiersAnalyse;</span>
+        }
+<span class="fc bfc" id="L1004" title="All 2 branches covered.">        for (int i = 0; i &lt; fichiers.size(); i++) {</span>
+<span class="pc bpc" id="L1005" title="1 of 2 branches missed.">            if (exFilesTempo.containsKey(fichiers.get(i))) { // old file</span>
+                // pas besoin de repasser avant
+<span class="fc bfc" id="L1007" title="All 2 branches covered.">                for (int j = i; j &lt; fichiers.size(); j++) {</span>
+<span class="pc bpc" id="L1008" title="1 of 2 branches missed.">                    if (exFilesTempo.containsKey(</span>
+<span class="fc" id="L1009">                            fichiers.get(j))) { // old file</span>
+                        int indiceFile1, indiceFile2;
+<span class="fc" id="L1011">                        indiceFile1 = exFilesTempo.get(fichiers.get(i));</span>
+<span class="fc" id="L1012">                        indiceFile2 = exFilesTempo.get(fichiers.get(j));</span>
+<span class="fc bfc" id="L1013" title="All 2 branches covered.">                        if (indiceFile2 &gt; indiceFile1) {</span>
+                            int tempo;
+<span class="fc" id="L1015">                            tempo = indiceFile1;</span>
+<span class="fc" id="L1016">                            indiceFile1 = indiceFile2;</span>
+<span class="fc" id="L1017">                            indiceFile2 = tempo;</span>
+                        }
+
+<span class="fc" id="L1020">                        resultatsAnalyse.setRes(</span>
+                                i, j, exresults[indiceFile1][indiceFile2]);
+                    }
+                }
+            }
+        }
+<span class="fc" id="L1026">    }</span>
+
+    /**
+     * Permet d'accéder aux résultats de l'analyse.
+     *
+     * @return Les résultats de l'analyse.
+     */
+    public MatriceTriangulaire getResults() {
+<span class="fc" id="L1034">        return resultatsAnalyse;</span>
+    }
+
+    public float getRes(File fichier1, File fichier2) {
+        int indiceResultatFichier1, indiceResultatFichier2;
+<span class="fc" id="L1039">        indiceResultatFichier1 = -1;</span>
+<span class="fc" id="L1040">        indiceResultatFichier2 = -1;</span>
+<span class="fc bfc" id="L1041" title="All 2 branches covered.">        for (int i = 0; i &lt; fichiersAnalyse.size(); ++i) {</span>
+<span class="fc bfc" id="L1042" title="All 2 branches covered.">            if (fichier1 == fichiersAnalyse.get(i)) {</span>
+<span class="fc" id="L1043">                indiceResultatFichier1 = i;</span>
+            }
+<span class="fc bfc" id="L1045" title="All 2 branches covered.">            if (fichier2 == fichiersAnalyse.get(i)) {</span>
+<span class="fc" id="L1046">                indiceResultatFichier2 = i;</span>
+            }
+<span class="pc bpc" id="L1048" title="1 of 4 branches missed.">            if (indiceResultatFichier2 != -1 &amp;&amp; indiceResultatFichier1 != -1) {</span>
+<span class="fc" id="L1049">                i = fichiersAnalyse.size();</span>
+            }
+        }
+<span class="fc" id="L1052">        return resultatsAnalyse.getRes(indiceResultatFichier1,</span>
+                indiceResultatFichier2);
+    }
+
+    private void increaseState() {
+<span class="fc" id="L1057">        this.state += 1.0 / resultatsAnalyse.getNumAnalyse();</span>
+<span class="fc" id="L1058">        aviserObservateurs(Observation.PROGRESS, null);</span>
+<span class="fc" id="L1059">    }</span>
+
+    /**
+     * Retire un fichier de la liste des fichiers, selon un fichier passé en
+     * paramètres.
+     *
+     * @param fichier Le fichier à retirer.
+     */
+    //TODO: Separer en deux methodes et mettre a jour
+    //le code dans les endroits ou elle est utiliser
+    public void retirerFichierEtMettreAJourMatrice(File fichier) {
+<span class="fc" id="L1070">        int indexAnalyse = fichiersAnalyse.indexOf(fichier);</span>
+<span class="fc" id="L1071">        int indexOriginale = fichiersOriginaux.indexOf(fichier);</span>
+<span class="fc" id="L1072">        fichiersOriginaux.remove(indexOriginale);</span>
+<span class="fc" id="L1073">        fichiersAnalyse.remove(indexAnalyse);</span>
+<span class="fc" id="L1074">        resultatsAnalyse.enleverLigneEtColonne(indexAnalyse);</span>
+
+<span class="fc" id="L1076">        modifie = true;</span>
+<span class="fc" id="L1077">    }</span>
+
+    public void CacherFichierEtMettreAJourMatrice(File fichier) {
+<span class="pc bpc" id="L1080" title="1 of 2 branches missed.">        if (resultatsComplets == null) {</span>
+
+            try {
+<span class="fc" id="L1083">                listeFichiersComplete = new ArrayList(fichiersAnalyse);</span>
+<span class="fc" id="L1084">                resultatsComplets = resultatsAnalyse.clone();</span>
+<span class="nc" id="L1085">            } catch (CloneNotSupportedException ex) {</span>
+<span class="nc" id="L1086">                ex.printStackTrace();</span>
+<span class="fc" id="L1087">            }</span>
+        }
+
+<span class="fc" id="L1090">        int indexAnalyse = fichiersAnalyse.indexOf(fichier);</span>
+<span class="fc" id="L1091">        resultatsAnalyse.enleverLigneEtColonne(indexAnalyse);</span>
+<span class="fc" id="L1092">        fichiersAnalyse.remove(indexAnalyse);</span>
+<span class="fc" id="L1093">        contientFichiersCaches = true;</span>
+<span class="fc" id="L1094">        modifie = true;</span>
+<span class="fc" id="L1095">    }</span>
+
+    public void RestaurerFichiersCaches() {
+<span class="nc bnc" id="L1098" title="All 2 branches missed.">        if (contientFichiersCaches) {</span>
+            try {
+<span class="nc" id="L1100">                fichiersAnalyse = new ArrayList(listeFichiersComplete);</span>
+<span class="nc" id="L1101">                resultatsAnalyse = resultatsComplets.clone();</span>
+<span class="nc" id="L1102">                contientFichiersCaches = false;</span>
+<span class="nc" id="L1103">                modifie = true;</span>
+<span class="nc" id="L1104">            } catch (CloneNotSupportedException ex) {</span>
+<span class="nc" id="L1105">                ex.printStackTrace();</span>
+<span class="nc" id="L1106">            }</span>
+        }
+<span class="nc" id="L1108">    }</span>
+
+    /**
+     * Retire des fichiers de l'analyse selon la différence entre les fichiers
+     * originaux et les fichiers restants après la suppression.
+     *
+     * @param nouveauxFichiers Les fichiers restants.
+     */
+    //TODO: Separer en methodes
+    public void mettreAJourFichiersEtMettreAJourMatrice(
+            List&lt;File&gt; nouveauxFichiers) {
+<span class="pc bpc" id="L1119" title="1 of 2 branches missed.">        if (state &gt; 0) {</span>
+<span class="pc bpc" id="L1120" title="1 of 4 branches missed.">            if (analyseConcatenation &amp;&amp; !sources.isEmpty()) {</span>
+<span class="fc" id="L1121">                Map&lt;File, List&lt;File&gt;&gt; copieSources = new HashMap(sources);</span>
+
+<span class="fc" id="L1123">                Object[] set = copieSources.keySet().toArray();</span>
+
+<span class="fc" id="L1125">                setFichiers(nouveauxFichiers, false);</span>
+<span class="fc" id="L1126">                regenererSources();</span>
+
+<span class="fc" id="L1128">                int nombreSupprime = 0;</span>
+<span class="fc bfc" id="L1129" title="All 2 branches covered.">                for (int i = 0; i &lt; set.length; i++) {</span>
+<span class="pc bpc" id="L1130" title="1 of 2 branches missed.">                    if (!sources.containsKey((File) set[i])) {</span>
+<span class="nc" id="L1131">                        resultatsAnalyse.enleverLigneEtColonne(</span>
+                                i - nombreSupprime);
+<span class="nc" id="L1133">                        nombreSupprime++;</span>
+                    }
+                }
+<span class="fc" id="L1136">            } else {</span>
+<span class="fc" id="L1137">                List&lt;File&gt; copieFichiers = new ArrayList(fichiersOriginaux);</span>
+
+<span class="fc" id="L1139">                setFichiers(nouveauxFichiers, false);</span>
+<span class="fc" id="L1140">                regenererSources();</span>
+
+<span class="fc" id="L1142">                int nombreSupprime = 0;</span>
+<span class="fc bfc" id="L1143" title="All 2 branches covered.">                for (int i = 0; i &lt; copieFichiers.size(); i++) {</span>
+<span class="fc bfc" id="L1144" title="All 2 branches covered.">                    if (!fichiersAnalyse.contains(copieFichiers.get(i))) {</span>
+<span class="fc" id="L1145">                        resultatsAnalyse.enleverLigneEtColonne(</span>
+                                i - nombreSupprime);
+<span class="fc" id="L1147">                        nombreSupprime++;</span>
+                    }
+                }
+            }
+
+<span class="fc" id="L1152">            aviserObservateurs(Observation.UPDATEMAT, null);</span>
+        } else {
+<span class="nc" id="L1154">            setFichiers(nouveauxFichiers, false);</span>
+        }
+
+<span class="fc" id="L1157">        modifie = true;</span>
+<span class="fc" id="L1158">    }</span>
+
+    /**
+     * Permet d'accéder à l'état de la tâche.
+     *
+     * @return L'état de la tâche.
+     */
+    public float getStateCount() {
+<span class="fc" id="L1166">        return state;</span>
+    }
+
+    /**
+     * Retourne la liste complète de tous les fichiers qui forment la tâche.
+     *
+     * @return Les fichiers de la tâche.
+     */
+    public List&lt;File&gt; getTousFichiers() {
+<span class="fc" id="L1175">        return new ArrayList(fichiersOriginaux);</span>
+    }
+
+    /**
+     * Retourne la liste des fichiers qui sont réellement analysés, par exemple,
+     * dans le cas d'une analyse par concaténation, les fichiers concaténés.
+     *
+     * @return Les fichiers analysés.
+     */
+    public List&lt;File&gt; getFichiersResultats() {
+<span class="fc" id="L1185">        return fichiersAnalyse;</span>
+    }
+
+    /**
+     * Permet d'ajouter une source aux sources. Associe ensuite les fichiers aux
+     * fichiers de la source.
+     *
+     * @param source La nouvelle source.
+     */
+    public void ajouterSource(File source) {
+<span class="fc" id="L1195">        modifie = true;</span>
+
+<span class="pc bpc" id="L1197" title="1 of 2 branches missed.">        if (sources == null) {</span>
+<span class="nc" id="L1198">            sources = new HashMap();</span>
+        }
+
+<span class="pc bpc" id="L1201" title="2 of 4 branches missed.">        if (!sources.containsKey(source) &amp;&amp; source.isDirectory()) {</span>
+<span class="fc" id="L1202">            sources.put(source, new ArrayList());</span>
+        }
+
+<span class="fc" id="L1205">        trouverFichiersSource(source);</span>
+<span class="fc" id="L1206">    }</span>
+
+    /**
+     * Trouve les sources des fichiers de la tâche.
+     *
+     * @return Les sources des fichiers de la tâche.
+     */
+    private void trouverFichiersSource(File source) {
+<span class="fc" id="L1214">        File ancetreCommun = extractCommonAncestor();</span>
+<span class="fc bfc" id="L1215" title="All 2 branches covered.">        for (File fichier : fichiersAnalyse) {</span>
+<span class="fc" id="L1216">            File parent = fichier.getParentFile();</span>
+
+<span class="pc bpc" id="L1218" title="1 of 2 branches missed.">            if (parent == source) {</span>
+<span class="nc" id="L1219">                sources.get(source).add(fichier);</span>
+            } else {
+<span class="pc bpc" id="L1221" title="1 of 2 branches missed.">                while (parent != null</span>
+<span class="fc bfc" id="L1222" title="All 2 branches covered.">                        &amp;&amp; !parent.equals(ancetreCommun)</span>
+<span class="fc bfc" id="L1223" title="All 2 branches covered.">                        &amp;&amp; !parent.equals(source)) {</span>
+<span class="fc" id="L1224">                    parent = parent.getParentFile();</span>
+                }
+
+<span class="pc bpc" id="L1227" title="1 of 4 branches missed.">                if (parent != null &amp;&amp; parent.equals(source)) {</span>
+<span class="fc" id="L1228">                    sources.get(source).add(fichier);</span>
+                }
+            }
+<span class="fc" id="L1231">        }</span>
+<span class="fc" id="L1232">    }</span>
+
+    private void regenererSources() {
+<span class="fc bfc" id="L1235" title="All 2 branches covered.">        for (File source : sources.keySet()) {</span>
+<span class="fc" id="L1236">            sources.get(source).clear();</span>
+<span class="fc" id="L1237">            trouverFichiersSource(source);</span>
+
+<span class="pc bpc" id="L1239" title="1 of 2 branches missed.">            if (sources.get(source).isEmpty()) {</span>
+<span class="nc" id="L1240">                sources.remove(source);</span>
+            }
+<span class="fc" id="L1242">        }</span>
+<span class="fc" id="L1243">    }</span>
+
+    /**
+     * Retire une source des sources et replace les fichiers dans la liste de
+     * fichiers pour l'analyse si l'analyse se fait par concaténation.
+     *
+     * @param source La source à retirer.
+     */
+    public void retirerSource(File source) {
+<span class="fc" id="L1252">        modifie = true;</span>
+
+<span class="pc bpc" id="L1254" title="1 of 2 branches missed.">        if (sources != null) {</span>
+<span class="fc" id="L1255">            sources.remove(source);</span>
+        }
+<span class="fc" id="L1257">    }</span>
+
+    /**
+     * Vérifie si deux fichiers appartiennent à une même source, pour ne pas les
+     * comparer entre eux.
+     *
+     * @param fichier1 Le premier fichier à vérifier.
+     * @param fichier2 Le deuxième fichier à vérifier.
+     * @return Si les fichiers appartiennent à la même source.
+     */
+    public boolean verifierSiMemeSource(File fichier1, File fichier2) {
+<span class="fc bfc" id="L1268" title="All 2 branches covered.">        for (List&lt;File&gt; fichiers : sources.values()) {</span>
+<span class="pc bpc" id="L1269" title="1 of 4 branches missed.">            if (fichiers.contains(fichier1) &amp;&amp; fichiers.contains(fichier2)) {</span>
+<span class="fc" id="L1270">                return true;</span>
+            }
+<span class="fc" id="L1272">        }</span>
+
+<span class="fc" id="L1274">        return false;</span>
+    }
+
+    /**
+     * @return Tous les fichiers, classés selon leur premier ancêtre commun.
+     */
+    public Map&lt;File, File[]&gt; getFilesByRoot() {
+<span class="fc" id="L1281">        Map&lt;File, File[]&gt; ret = new HashMap();</span>
+
+<span class="fc bfc" id="L1283" title="All 2 branches covered.">        for (File root : filesCommonAncestors) {</span>
+<span class="fc" id="L1284">            List&lt;File&gt; filesUnderThisRoot = new ArrayList();</span>
+
+<span class="fc bfc" id="L1286" title="All 2 branches covered.">            for (File file : fichiersOriginaux) {</span>
+<span class="fc bfc" id="L1287" title="All 2 branches covered.">                if (file.toPath().getRoot().toFile().equals(root)) {</span>
+<span class="fc" id="L1288">                    filesUnderThisRoot.add(file);</span>
+                }
+<span class="fc" id="L1290">            }</span>
+
+<span class="fc" id="L1292">            ret.put(root, filesUnderThisRoot.toArray(new File[0]));</span>
+        }
+
+<span class="fc" id="L1295">        return ret;</span>
+    }
+
+    /**
+     * Permet d'accéder à un fichier selon un indice.
+     *
+     * @param indice L'indice du fichier.
+     * @return Le fichier demandé, ou null.
+     */
+    public File getFile(int indice) {
+<span class="pc bpc" id="L1305" title="1 of 4 branches missed.">        if (fichiersAnalyse != null &amp;&amp; indice &lt; fichiersAnalyse.size()) {</span>
+<span class="fc" id="L1306">            return fichiersAnalyse.get(indice);</span>
+        } else {
+<span class="fc" id="L1308">            return null;</span>
+        }
+    }
+
+    /**
+     * Permet d'accéder aux ancêtres communs des fichiers.
+     *
+     * @return Les ancêtres communs des fichiers.
+     */
+    public File[] getCommonAncestors() {
+<span class="pc bpc" id="L1318" title="1 of 2 branches missed.">        if (filesCommonAncestors == null) {</span>
+<span class="nc" id="L1319">            return null;</span>
+        } else {
+<span class="fc" id="L1321">            return filesCommonAncestors.clone();</span>
+        }
+    }
+
+    /**
+     * Lorsqu'on veut forcer le type d'analyse malgré les préférences.
+     *
+     * @param cat Le type d'analyse.
+     */
+    public void setConcatenation(boolean cat) {
+<span class="fc" id="L1331">        prefs = null;</span>
+<span class="fc" id="L1332">        modifie = true;</span>
+
+<span class="fc" id="L1334">        analyseConcatenation = cat;</span>
+<span class="fc" id="L1335">    }</span>
+
+    /**
+     * Permet de modifier le rapport de la tâche.
+     *
+     * @param JReport Le nouveau rapport.
+     */
+    public void setJReport(String JReport) {
+<span class="fc" id="L1343">        modifie = true;</span>
+<span class="fc" id="L1344">        rapport = JReport;</span>
+<span class="fc" id="L1345">    }</span>
+
+    /**
+     * Permet d'accéder au rapport de la tâche.
+     *
+     * @return Le rapport de la tâche.
+     */
+    public String getJReport() {
+<span class="fc" id="L1353">        return rapport;</span>
+    }
+
+    /**
+     * Indique si la tâche a été modifiée depuis la dernière vérification.
+     *
+     * @return Si la tâche a été modifiée.
+     */
+    public boolean getModifie() {
+<span class="fc" id="L1362">        return modifie;</span>
+    }
+
+    /**
+     * Permet d'accéder au titre de la tâche.
+     *
+     * @return Le titre de la tâche.
+     */
+    public String getTitre() {
+<span class="fc" id="L1371">        return titre;</span>
+    }
+
+    /**
+     * Permet de modifier le titre de la tâche.
+     *
+     * @param titre Le titre de la tâche.
+     */
+    public void setTitre(String titre) {
+<span class="fc" id="L1380">        this.titre = titre;</span>
+<span class="fc" id="L1381">        modifie = true;</span>
+<span class="fc" id="L1382">    }</span>
+
+    /**
+     * Permet de modifier le gestionnaire de préférences associé à la tâche.
+     *
+     * @param prefs
+     */
+    public void setPrefs(GestionnairePreferences prefs) {
+<span class="fc" id="L1390">        this.prefs = prefs;</span>
+        /*if (prefs.readPref(&quot;COMMENTAIRES&quot;, false) != null) {
+            checkBoxCommentaires = (boolean) prefs.readPref(&quot;COMMENTAIRES&quot;, false);
+        }
+        if (prefs.readPref(&quot;WHITESPACES&quot;, false) != null) {
+            checkBoxWhitepsaces = (boolean) prefs.readPref(&quot;WHITESPACES&quot;, false);
+        }
+        if (prefs.readPref(&quot;PREVIEW&quot;, false) != null) {
+            jCheckBoxPreviewFiles = (boolean) prefs.readPref(&quot;PREVIEW&quot;, false);
+        }
+        if (prefs.readPref(&quot;CONCATENATION&quot;, false) != null) {
+            jCheckBoxAnalyseConcatenation = (boolean) prefs.readPref(&quot;CONCATENATION&quot;, false);
+        }
+        if (prefs.readPref(&quot;EXTRACT_PDF&quot;, false) != null) {
+            pdfExtractor = (boolean) prefs.readPref(&quot;EXTRACT_PDF&quot;, false);
+        }
+        if (prefs.readPref(&quot;EXTRACT_IMG&quot;, false) != null) {
+            pdfImages = (boolean) prefs.readPref(&quot;EXTRACT_IMG&quot;, false);
+        }*/
+<span class="fc" id="L1409">    }</span>
+    
+    /**
+     * Permet de modifier le gestionnaire de préférences associé à la tâche.
+     *
+     * @param prefs
+     */
+    public void setPrefsPourTests(GestionnairePreferences prefs) {
+<span class="fc" id="L1417">        this.prefs = prefs;</span>
+<span class="pc bpc" id="L1418" title="1 of 2 branches missed.">        if (prefs.readPref(&quot;COMMENTAIRES&quot;, false) != null) {</span>
+<span class="fc" id="L1419">            checkBoxCommentaires = (boolean) prefs.readPref(&quot;COMMENTAIRES&quot;, false);</span>
+        }
+<span class="pc bpc" id="L1421" title="1 of 2 branches missed.">        if (prefs.readPref(&quot;WHITESPACES&quot;, false) != null) {</span>
+<span class="fc" id="L1422">            checkBoxWhitepsaces = (boolean) prefs.readPref(&quot;WHITESPACES&quot;, false);</span>
+        }
+<span class="pc bpc" id="L1424" title="1 of 2 branches missed.">        if (prefs.readPref(&quot;PREVIEW&quot;, false) != null) {</span>
+<span class="fc" id="L1425">            jCheckBoxPreviewFiles = (boolean) prefs.readPref(&quot;PREVIEW&quot;, false);</span>
+        }
+<span class="pc bpc" id="L1427" title="1 of 2 branches missed.">        if (prefs.readPref(&quot;CONCATENATION&quot;, false) != null) {</span>
+<span class="fc" id="L1428">            jCheckBoxAnalyseConcatenation = (boolean) prefs.readPref(&quot;CONCATENATION&quot;, false);</span>
+        }
+<span class="pc bpc" id="L1430" title="1 of 2 branches missed.">        if (prefs.readPref(&quot;EXTRACT_PDF&quot;, false) != null) {</span>
+<span class="fc" id="L1431">            pdfExtractor = (boolean) prefs.readPref(&quot;EXTRACT_PDF&quot;, false);</span>
+        }
+<span class="pc bpc" id="L1433" title="1 of 2 branches missed.">        if (prefs.readPref(&quot;EXTRACT_IMG&quot;, false) != null) {</span>
+<span class="fc" id="L1434">            pdfImages = (boolean) prefs.readPref(&quot;EXTRACT_IMG&quot;, false);</span>
+        }
+<span class="fc" id="L1436">    }</span>
+
+    @Override
+    public StringBuffer toXml() {
+<span class="fc" id="L1440">        modifie = false;</span>
+
+<span class="fc" id="L1442">        StringBuffer str = new StringBuffer();</span>
+
+<span class="fc" id="L1444">        str.append(&quot;&lt;onglet&gt;\n&quot;);</span>
+<span class="fc bfc" id="L1445" title="All 2 branches covered.">        if (this.estSommaire()) {</span>
+<span class="fc" id="L1446">            str.append(&quot;&lt;titre sommaire=\&quot;True\&quot;&gt;&quot;);</span>
+        } else {
+<span class="fc" id="L1448">            str.append(&quot;&lt;titre sommaire=\&quot;False\&quot;&gt;&quot;);</span>
+        }
+<span class="fc" id="L1450">        str.append(titre);</span>
+<span class="fc" id="L1451">        str.append(&quot;&lt;/titre&gt;\n&quot;);</span>
+<span class="fc" id="L1452">        str.append(&quot;&lt;rapport&gt;&quot;);</span>
+<span class="fc" id="L1453">        str.append(rapport);</span>
+<span class="fc" id="L1454">        str.append(&quot;&lt;/rapport&gt;\n&quot;);</span>
+<span class="fc" id="L1455">        str.append(&quot;&lt;analys&gt;\n&quot;);</span>
+<span class="fc" id="L1456">        str.append(&quot;&lt;fichs&gt;\n&quot;);</span>
+
+<span class="fc bfc" id="L1458" title="All 2 branches covered.">        for (File f : fichiersOriginaux) {</span>
+
+            // 1. retourne le hash du fichier en question
+<span class="fc" id="L1461">            String strHash = null;</span>
+            try {
+<span class="fc" id="L1463">                strHash = convertFileToMD5Str(f.getAbsolutePath());</span>
+<span class="nc" id="L1464">            } catch (Exception e) {</span>
+                // rien
+<span class="fc" id="L1466">            }</span>
+
+<span class="fc" id="L1468">            str.append(&quot;&lt;file &quot; + &quot;hash='&quot; + strHash + &quot;'&quot; + &quot;&gt;&quot;);</span>
+<span class="fc" id="L1469">            str.append(SaveAndRestore.escape(f.getAbsolutePath()));</span>
+<span class="fc" id="L1470">            str.append(&quot;&lt;/file&gt;\n&quot;);</span>
+<span class="fc" id="L1471">        }</span>
+
+<span class="fc" id="L1473">        str.append(&quot;&lt;/fichs&gt;\n&quot;);</span>
+<span class="fc" id="L1474">        str.append(&quot;&lt;sources&gt;\n&quot;);</span>
+<span class="fc bfc" id="L1475" title="All 2 branches covered.">        for (File dossier : sources.keySet()) {</span>
+<span class="fc" id="L1476">            str.append(&quot;&lt;source&gt;&quot;).append(dossier).append(&quot;&lt;/source&gt;\n&quot;);</span>
+<span class="fc" id="L1477">        }</span>
+<span class="fc" id="L1478">        str.append(&quot;&lt;/sources&gt;\n&quot;);</span>
+<span class="pc bpc" id="L1479" title="1 of 4 branches missed.">        if (resultatsAnalyse != null &amp;&amp; !analyseEnCours) {</span>
+<span class="fc" id="L1480">            str.append(&quot;&lt;res len=\&quot;&quot;);</span>
+<span class="fc" id="L1481">            str.append(resultatsAnalyse.getLength());</span>
+<span class="fc" id="L1482">            str.append(&quot;\&quot;&gt;\n&quot;);</span>
+
+<span class="fc" id="L1484">            int i = 0;</span>
+<span class="fc bfc" id="L1485" title="All 2 branches covered.">            for (float[] t : resultatsAnalyse.getValues()) {</span>
+<span class="fc" id="L1486">                str.append(&quot;&lt;li len=\&quot;&quot;);</span>
+<span class="fc" id="L1487">                str.append(t.length);</span>
+<span class="fc" id="L1488">                str.append(&quot;\&quot;&gt;\n&quot;);</span>
+
+<span class="fc" id="L1490">                int j = 0;</span>
+<span class="fc bfc" id="L1491" title="All 2 branches covered.">                for (float f : t) {</span>
+<span class="fc" id="L1492">                    str.append(&quot;&lt;l i=\&quot;&quot;);</span>
+<span class="fc" id="L1493">                    str.append(i);</span>
+<span class="fc" id="L1494">                    str.append(&quot;\&quot; j=\&quot;&quot;);</span>
+<span class="fc" id="L1495">                    str.append(j);</span>
+<span class="fc" id="L1496">                    str.append(&quot;\&quot;&gt;&quot;);</span>
+<span class="fc" id="L1497">                    str.append(f);</span>
+<span class="fc" id="L1498">                    str.append(&quot;&lt;/l&gt;\n&quot;);</span>
+
+<span class="fc" id="L1500">                    j++;</span>
+                }
+<span class="fc" id="L1502">                str.append(&quot;&lt;/li&gt;\n&quot;);</span>
+<span class="fc" id="L1503">                i++;</span>
+            }
+<span class="fc" id="L1505">        } else {</span>
+            // Le résultat ne peut pas être null, car on ne peut pas passer un
+            // fichier null, sinon ça plante.
+<span class="fc" id="L1508">            str.append(&quot;&lt;res len=\&quot;&quot;).append(0).append(&quot;\&quot;&gt;\n&quot;);</span>
+        }
+
+<span class="fc" id="L1511">        str.append(&quot;&lt;/res&gt;\n&quot;);</span>
+
+<span class="fc" id="L1513">        str.append(&quot;&lt;options&gt;\n&quot;);</span>
+
+        try {
+<span class="fc" id="L1516">            bPreview = (boolean) prefs.readPref(&quot;PREVIEW&quot;, false);</span>
+<span class="fc" id="L1517">        } catch (NullPointerException e) {</span>
+<span class="fc" id="L1518">        }</span>
+<span class="fc" id="L1519">        str.append(&quot;&lt;preview&gt;&quot; + bPreview + &quot;&lt;/preview&gt;\n&quot;);</span>
+
+        try {
+<span class="fc" id="L1522">            bConcatenation = (boolean) prefs.readPref(&quot;CONCATENATION&quot;, false);</span>
+<span class="fc" id="L1523">        } catch (NullPointerException e) {</span>
+<span class="fc" id="L1524">        }</span>
+<span class="fc" id="L1525">        str.append(&quot;&lt;concatenation&gt;&quot; + bConcatenation + &quot;&lt;/concatenation&gt;\n&quot;);</span>
+
+        try {
+<span class="fc" id="L1528">            bCommentaires = (boolean) prefs.readPref(&quot;COMMENTAIRES&quot;, false);</span>
+<span class="fc" id="L1529">        } catch (NullPointerException e) {</span>
+<span class="fc" id="L1530">        }</span>
+<span class="fc" id="L1531">        str.append(&quot;&lt;commentaires&gt;&quot; + bCommentaires + &quot;&lt;/commentaires&gt;\n&quot;);</span>
+
+        try {
+<span class="fc" id="L1534">            bWhiteSpaces = (boolean) prefs.readPref(&quot;WHITESPACES&quot;, false);</span>
+<span class="fc" id="L1535">        } catch (NullPointerException e) {</span>
+<span class="fc" id="L1536">        }</span>
+<span class="fc" id="L1537">        str.append(&quot;&lt;whitespaces&gt;&quot; + bWhiteSpaces + &quot;&lt;/whitespaces&gt;\n&quot;);</span>
+
+        try {
+<span class="fc" id="L1540">            bExtrairePDF = (boolean) prefs.readPref(&quot;EXTRACT_PDF&quot;, false);</span>
+<span class="fc" id="L1541">        } catch (NullPointerException e) {</span>
+<span class="fc" id="L1542">        }</span>
+<span class="fc" id="L1543">        str.append(&quot;&lt;extrairepdf&gt;&quot; + bExtrairePDF + &quot;&lt;/extrairepdf&gt;\n&quot;);</span>
+
+        try {
+<span class="fc" id="L1546">            bExtraireImagePDF = (boolean) prefs.readPref(&quot;EXTRACT_IMG&quot;, false);</span>
+<span class="fc" id="L1547">        } catch (NullPointerException e) {</span>
+<span class="fc" id="L1548">        }</span>
+<span class="fc" id="L1549">        str.append(&quot;&lt;extraireimages&gt;&quot; + bExtraireImagePDF + &quot;&lt;/extraireimages&gt;\n&quot;);</span>
+
+<span class="fc" id="L1551">        str.append(&quot;&lt;/options&gt;\n&quot;);</span>
+<span class="fc" id="L1552">        IDTache = &quot;Saved&quot;;</span>
+<span class="fc" id="L1553">        str.append(&quot;&lt;id&gt;&quot; + IDTache + &quot;&lt;/id&gt;\n&quot;);</span>
+<span class="fc" id="L1554">        str.append(&quot;&lt;optspecifiques&gt;\n&quot;);</span>
+
+<span class="fc" id="L1556">        str.append(&quot;&lt;preview&gt;&quot; + jCheckBoxPreviewFiles + &quot;&lt;/preview&gt;\n&quot;);</span>
+<span class="fc" id="L1557">        str.append(&quot;&lt;concatenation&gt;&quot; + jCheckBoxAnalyseConcatenation + &quot;&lt;/concatenation&gt;\n&quot;);</span>
+<span class="fc" id="L1558">        str.append(&quot;&lt;extrairepdf&gt;&quot; + pdfExtractor + &quot;&lt;/extrairepdf&gt;\n&quot;);</span>
+<span class="fc" id="L1559">        str.append(&quot;&lt;extraireimages&gt;&quot; + pdfImages + &quot;&lt;/extraireimages&gt;\n&quot;);</span>
+<span class="fc" id="L1560">        str.append(&quot;&lt;commentaires&gt;&quot; + checkBoxCommentaires + &quot;&lt;/commentaires&gt;\n&quot;);</span>
+<span class="fc" id="L1561">        str.append(&quot;&lt;whitespaces&gt;&quot; + checkBoxWhitepsaces + &quot;&lt;/whitespaces&gt;\n&quot;);</span>
+<span class="fc" id="L1562">        str.append(&quot;&lt;progressive&gt;&quot; + isProgressive + &quot;&lt;/progressive&gt;\n&quot;);</span>
+<span class="fc" id="L1563">        str.append(&quot;&lt;redlimit&gt;&quot; + redLimitTxt + &quot;&lt;/redlimit&gt;\n&quot;);</span>
+<span class="fc" id="L1564">        str.append(&quot;&lt;yellowlimit&gt;&quot; + yellowLimitTxt + &quot;&lt;/yellowlimit&gt;\n&quot;);</span>
+<span class="fc" id="L1565">        str.append(&quot;&lt;greenlimit&gt;&quot; + greenLimitTxt + &quot;&lt;/greenlimit&gt;\n&quot;);</span>
+<span class="fc" id="L1566">        str.append(&quot;&lt;/optspecifiques&gt;\n&quot;);</span>
+<span class="fc" id="L1567">        str.append(&quot;&lt;/analys&gt;\n&quot;);</span>
+<span class="fc" id="L1568">        str.append(&quot;&lt;/onglet&gt;\n&quot;);</span>
+
+<span class="fc" id="L1570">        return str;</span>
+    }
+
+    public String convertFileToMD5Str(String path) throws FileNotFoundException, IOException, NoSuchAlgorithmException {
+<span class="fc" id="L1574">        File fichier = new File(path);</span>
+
+<span class="fc" id="L1576">        BufferedReader br = new BufferedReader(new FileReader(fichier));</span>
+
+<span class="fc" id="L1578">        String contenu = &quot;&quot;;</span>
+<span class="fc bfc" id="L1579" title="All 2 branches covered.">        while ((br.readLine()) != null) {</span>
+<span class="fc" id="L1580">            contenu += br.readLine();</span>
+        }
+
+<span class="fc" id="L1583">        MessageDigest m = MessageDigest.getInstance(&quot;MD5&quot;);</span>
+<span class="fc" id="L1584">        m.reset();</span>
+<span class="fc" id="L1585">        m.update(contenu.getBytes());</span>
+<span class="fc" id="L1586">        byte[] digest = m.digest();</span>
+<span class="fc" id="L1587">        BigInteger bigInt = new BigInteger(1, digest);</span>
+<span class="fc" id="L1588">        String hashText = bigInt.toString(16);</span>
+        // Now we need to zero pad it if you actually want the full 32 chars.
+<span class="pc bpc" id="L1590" title="1 of 2 branches missed.">        while (hashText.length() &lt; 32) {</span>
+<span class="nc" id="L1591">            hashText = &quot;0&quot; + hashText;</span>
+        }
+
+<span class="fc" id="L1594">        return hashText;</span>
+    }
+
+    @Override
+    public void fromDom(Node node) {
+<span class="fc" id="L1599">        estRestauree = false;</span>
+<span class="fc" id="L1600">        state = 1;</span>
+<span class="fc bfc" id="L1601" title="All 2 branches covered.">        for (int i = 0; i &lt; node.getChildNodes().getLength(); i++) {</span>
+<span class="pc bpc" id="L1602" title="1 of 2 branches missed.">            if (node.getChildNodes().item(i).getNodeName() != null) {</span>
+<span class="fc bfc" id="L1603" title="All 4 branches covered.">                switch (node.getChildNodes().item(i).getNodeName()) {</span>
+                    case &quot;titre&quot;:
+<span class="fc" id="L1605">                        titre = node.getChildNodes().item(i).getTextContent();</span>
+<span class="fc" id="L1606">                        break;</span>
+                    case &quot;rapport&quot;:
+<span class="fc" id="L1608">                        rapport = node.getChildNodes().item(i).getTextContent();</span>
+<span class="fc" id="L1609">                        break;</span>
+                    case &quot;analys&quot;:
+<span class="fc" id="L1611">                        NodeList analyse</span>
+<span class="fc" id="L1612">                                = node.getChildNodes().item(i).getChildNodes();</span>
+                         {
+                            try {
+<span class="fc" id="L1615">                                setFileListFromXMLNode(analyse);</span>
+<span class="nc" id="L1616">                            } catch (IOException ex) {</span>
+<span class="nc" id="L1617">                                Logger.getLogger(Task.class.getName()).log(Level.SEVERE, null, ex);</span>
+<span class="nc" id="L1618">                            } catch (NoSuchAlgorithmException ex) {</span>
+<span class="nc" id="L1619">                                Logger.getLogger(Task.class.getName()).log(Level.SEVERE, null, ex);</span>
+<span class="pc" id="L1620">                            }</span>
+                        }
+                        break;
+
+                }
+            }
+        }
+
+<span class="fc" id="L1628">        modifie = false;</span>
+<span class="fc" id="L1629">    }</span>
+
+    private void setFileListFromXMLNode(NodeList analyse) throws IOException, FileNotFoundException, NoSuchAlgorithmException {
+<span class="fc" id="L1632">        List&lt;File&gt; list = null;</span>
+<span class="fc" id="L1633">        float[][] resmat = null;</span>
+<span class="fc" id="L1634">        erreurRestauration = false;</span>
+
+<span class="fc bfc" id="L1636" title="All 2 branches covered.">        for (int j = 0; j &lt; analyse.getLength(); j++) {</span>
+<span class="fc bfc" id="L1637" title="All 7 branches covered.">            switch (analyse.item(j).getNodeName()) {</span>
+                case &quot;fichs&quot;: {
+<span class="fc" id="L1639">                    NodeList fichml = analyse.item(j).getChildNodes();</span>
+<span class="fc" id="L1640">                    list = new ArrayList();</span>
+
+<span class="fc bfc" id="L1642" title="All 2 branches covered.">                    for (int k = 0; k &lt; fichml.getLength(); k++) {</span>
+<span class="fc bfc" id="L1643" title="All 2 branches covered.">                        if (fichml.item(k).getNodeName().equals(&quot;file&quot;)) {</span>
+<span class="fc" id="L1644">                            String nomFichier = fichml.item(k)</span>
+<span class="fc" id="L1645">                                    .getTextContent().trim();</span>
+<span class="fc" id="L1646">                            File f = new File(nomFichier);</span>
+
+<span class="fc" id="L1648">                            Element e = (Element) fichml.item(k);</span>
+
+<span class="pc bpc" id="L1650" title="1 of 2 branches missed.">                            if (f.exists()) {</span>
+<span class="pc bpc" id="L1651" title="1 of 2 branches missed.">                                if ((e.getAttribute(&quot;hash&quot;)).equals(convertFileToMD5Str(nomFichier))) {</span>
+<span class="fc" id="L1652">                                    list.add(f); //seuls les fichiers existants et non modifiés sont ajoutés à la liste</span>
+                                } else {
+                                    //le fichier a été modifié
+<span class="nc" id="L1655">                                    erreurRestauration = true;</span>
+                                }
+                            } else {
+                                //le fichier n'existe pas.
+<span class="nc" id="L1659">                                erreurRestauration = true;</span>
+                            }
+                        }
+                    }
+<span class="pc bpc" id="L1663" title="1 of 2 branches missed.">                    if (erreurRestauration == false) {</span>
+<span class="fc" id="L1664">                        setFichiers(list);</span>
+<span class="fc" id="L1665">                        modifie = false;</span>
+                    }
+
+                }
+<span class="fc" id="L1669">                break;</span>
+                case &quot;sources&quot;: {
+<span class="fc" id="L1671">                    NodeList fichml = analyse.item(j).getChildNodes();</span>
+<span class="fc bfc" id="L1672" title="All 2 branches covered.">                    for (int k = 0; k &lt; fichml.getLength(); k++) {</span>
+<span class="pc bpc" id="L1673" title="1 of 2 branches missed.">                        if (fichml.item(k).getNodeName().equals(&quot;source&quot;)) {</span>
+<span class="nc" id="L1674">                            File f = new File(fichml.item(k)</span>
+<span class="nc" id="L1675">                                    .getTextContent().trim());</span>
+<span class="nc" id="L1676">                            ajouterSource(f);</span>
+                        }
+                    }
+                }
+<span class="fc" id="L1680">                break;</span>
+                case &quot;res&quot;: {
+<span class="fc" id="L1682">                    resmat = getMatFromXMLNode(Integer.parseInt(</span>
+<span class="fc" id="L1683">                            analyse.item(j).getAttributes()</span>
+<span class="fc" id="L1684">                                    .getNamedItem(&quot;len&quot;).getTextContent()),</span>
+<span class="fc" id="L1685">                            analyse.item(j).getChildNodes());</span>
+                }
+<span class="fc" id="L1687">                break;</span>
+                case &quot;options&quot;: {
+<span class="fc" id="L1689">                    NodeList options = analyse.item(j).getChildNodes();</span>
+<span class="fc bfc" id="L1690" title="All 2 branches covered.">                    for (int i = 0; i &lt; options.getLength(); i++) {</span>
+<span class="fc bfc" id="L1691" title="All 7 branches covered.">                        switch (options.item(i).getNodeName()) {</span>
+                            case &quot;preview&quot;:
+<span class="fc" id="L1693">                                bPreview = Boolean.parseBoolean(options.item(i).getTextContent());</span>
+<span class="fc" id="L1694">                                prefs.writePref(&quot;PREVIEW&quot;, bPreview);</span>
+<span class="fc" id="L1695">                                break;</span>
+                            case &quot;concatenation&quot;:
+<span class="fc" id="L1697">                                bConcatenation = Boolean.parseBoolean(options.item(i).getTextContent());</span>
+<span class="fc" id="L1698">                                prefs.writePref(&quot;CONCATENATION&quot;, bConcatenation);</span>
+<span class="fc" id="L1699">                                break;</span>
+                            case &quot;commentaires&quot;:
+<span class="fc" id="L1701">                                bCommentaires = Boolean.parseBoolean(options.item(i).getTextContent());</span>
+<span class="fc" id="L1702">                                prefs.writePref(&quot;COMMENTAIRES&quot;, bCommentaires);</span>
+<span class="fc" id="L1703">                                break;</span>
+                            case &quot;whitespaces&quot;:
+<span class="fc" id="L1705">                                bWhiteSpaces = Boolean.parseBoolean(options.item(i).getTextContent());</span>
+<span class="fc" id="L1706">                                prefs.writePref(&quot;WHITESPACES&quot;, bWhiteSpaces);</span>
+<span class="fc" id="L1707">                                break;</span>
+                            case &quot;extrairepdf&quot;:
+<span class="fc" id="L1709">                                bExtrairePDF = Boolean.parseBoolean(options.item(i).getTextContent());</span>
+<span class="fc" id="L1710">                                prefs.writePref(&quot;EXTRACT_PDF&quot;, bExtrairePDF);</span>
+<span class="fc" id="L1711">                                break;</span>
+                            case &quot;extraireimages&quot;:
+<span class="fc" id="L1713">                                bExtraireImagePDF = Boolean.parseBoolean(options.item(i).getTextContent());</span>
+<span class="fc" id="L1714">                                prefs.writePref(&quot;EXTRACT_IMG&quot;, bExtraireImagePDF);</span>
+                        }
+                    }
+                }
+                case &quot;id&quot;:
+<span class="fc" id="L1719">                    IDTache = analyse.item(j).getTextContent();</span>
+<span class="fc" id="L1720">                    break;</span>
+                case &quot;optspecifiques&quot;:
+<span class="fc" id="L1722">                    NodeList optSpec = analyse.item(j).getChildNodes();</span>
+<span class="fc bfc" id="L1723" title="All 2 branches covered.">                    for (int i = 0; i &lt; optSpec.getLength(); i++) {</span>
+<span class="fc bfc" id="L1724" title="All 11 branches covered.">                        switch (optSpec.item(i).getNodeName()) {</span>
+                            case &quot;preview&quot;:
+<span class="fc" id="L1726">                                jCheckBoxPreviewFiles = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1727">                                break;</span>
+                            case &quot;concatenation&quot;:
+<span class="fc" id="L1729">                                jCheckBoxAnalyseConcatenation = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1730">                                break;</span>
+                            case &quot;extrairepdf&quot;:
+<span class="fc" id="L1732">                                pdfExtractor = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1733">                                break;</span>
+                            case &quot;extraireimages&quot;:
+<span class="fc" id="L1735">                                pdfImages = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1736">                                break;</span>
+                            case &quot;commentaires&quot;:
+<span class="fc" id="L1738">                                checkBoxCommentaires = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1739">                                break;</span>
+                            case &quot;whitespaces&quot;:
+<span class="fc" id="L1741">                                checkBoxWhitepsaces = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1742">                                break;</span>
+                            case &quot;progressive&quot;:
+<span class="fc" id="L1744">                                isProgressive = Boolean.parseBoolean(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1745">                                break;</span>
+                            case &quot;redlimit&quot;:
+                                  try {
+<span class="fc" id="L1748">                                redLimit = Double.parseDouble(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1749">                                redLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="nc" id="L1750">                            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1751">                                redLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="fc" id="L1752">                            }</span>
+<span class="nc" id="L1753">                            break;</span>
+                            case &quot;yellowlimit&quot;:
+                                  try {
+<span class="fc" id="L1756">                                yellowLimit = Double.parseDouble(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1757">                                yellowLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="nc" id="L1758">                            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1759">                                yellowLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="fc" id="L1760">                            }</span>
+<span class="nc" id="L1761">                            break;</span>
+                            case &quot;greenlimit&quot;:
+                                  try {
+<span class="fc" id="L1764">                                greenLimit = Double.parseDouble(optSpec.item(i).getTextContent());</span>
+<span class="fc" id="L1765">                                greenLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="nc" id="L1766">                            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1767">                                greenLimitTxt = optSpec.item(i).getTextContent();</span>
+<span class="fc" id="L1768">                            }</span>
+                            break;
+                        }
+                    }
+                    break;
+            }
+        }
+
+<span class="pc bpc" id="L1776" title="1 of 2 branches missed.">        if (erreurRestauration == false) {</span>
+<span class="pc bpc" id="L1777" title="1 of 4 branches missed.">            if (resmat != null &amp;&amp; resmat.length != 0) {</span>
+<span class="fc" id="L1778">                setExRes(list, resmat);</span>
+            }
+        }
+
+<span class="fc" id="L1782">    }</span>
+
+    private float[][] getMatFromXMLNode(int taille, NodeList liste) {
+<span class="fc" id="L1785">        float[][] matrice = new float[taille][];</span>
+
+<span class="fc" id="L1787">        int a = 0;</span>
+<span class="fc bfc" id="L1788" title="All 2 branches covered.">        for (int i = 0; i &lt; liste.getLength(); i++) {</span>
+<span class="fc bfc" id="L1789" title="All 2 branches covered.">            if (&quot;li&quot;.equals(liste.item(i).getNodeName())) {</span>
+<span class="fc" id="L1790">                NodeList m = liste.item(i).getChildNodes();</span>
+<span class="fc" id="L1791">                matrice[a] = new float[Integer.parseInt(</span>
+<span class="fc" id="L1792">                        liste.item(i).getAttributes()</span>
+<span class="fc" id="L1793">                                .getNamedItem(&quot;len&quot;).getTextContent())];</span>
+
+<span class="fc" id="L1795">                int b = 0;</span>
+<span class="fc bfc" id="L1796" title="All 2 branches covered.">                for (int j = 0; j &lt; m.getLength(); j++) {</span>
+<span class="fc bfc" id="L1797" title="All 2 branches covered.">                    if (&quot;l&quot;.equals(m.item(j).getNodeName())) {</span>
+<span class="fc" id="L1798">                        matrice[a][b]</span>
+<span class="fc" id="L1799">                                = Float.parseFloat(m.item(j).getTextContent());</span>
+<span class="fc" id="L1800">                        b++;</span>
+                    }
+                }
+<span class="fc" id="L1803">                a++;</span>
+            }
+        }
+
+<span class="fc" id="L1807">        return matrice;</span>
+    }
+
+    /**
+     * Indique ne pas être un sommaire.
+     *
+     * @return false
+     */
+    public boolean estSommaire() {
+<span class="fc" id="L1816">        return false;</span>
+    }
+
+    /**
+     * Retourne vrai si le dossier passé en paramètre est une source.
+     *
+     * @param folder Le dossier à tester.
+     * @return Si le dossier est une source.
+     */
+    public boolean isSource(File folder) {
+<span class="fc" id="L1826">        return sources.keySet().contains(folder);</span>
+    }
+
+    /**
+     * Supprime la source qui lie les fichiers du dossier.
+     *
+     * @param folder Le dossier représentant une source.
+     */
+    public void supprimerSource(File folder) {
+<span class="pc bpc" id="L1835" title="1 of 2 branches missed.">        if (sources.keySet().contains(folder)) {</span>
+<span class="fc" id="L1836">            sources.remove(folder);</span>
+        }
+<span class="fc" id="L1838">    }</span>
+
+    public boolean contientTache(Task tache) {
+<span class="fc" id="L1841">        return false;</span>
+    }
+
+    /**
+     * Indique si la tâche a été restaurée ou non.
+     *
+     * @return Si la tâche a été restaurée ou non.
+     */
+    public boolean estRestauree() {
+<span class="fc" id="L1850">        return estRestauree;</span>
+    }
+
+    /**
+     * Permet de marquer la tâche comme restaurée.
+     */
+    public void marquerCommeRestauree() {
+<span class="fc" id="L1857">        estRestauree = true;</span>
+<span class="fc" id="L1858">    }</span>
+
+    public boolean verifierAnalyseFaite() {
+<span class="fc bfc" id="L1861" title="All 2 branches covered.">        for (int i = 0; i &lt; resultatsAnalyse.getValues().length; i++) {</span>
+<span class="fc bfc" id="L1862" title="All 2 branches covered.">            for (int j = 0; j &lt; resultatsAnalyse.getValues()[i].length; j++) {</span>
+<span class="fc bfc" id="L1863" title="All 2 branches covered.">                if (resultatsAnalyse.getResAt(i, j) &lt; 0) {</span>
+<span class="fc" id="L1864">                    return false;</span>
+                }
+            }
+        }
+<span class="fc" id="L1868">        return true;</span>
+    }
+
+    /**
+     * Retourne vrai si le dossier passé en paramètre contient au moins un
+     * sous-dossier qui se retrouve dans le tableau de fichiers.
+     *
+     * @param dir Dossier à vérifier.
+     * @return Si le dossier se trouve dans les fichiers.
+     */
+    public boolean hasSubdirectoriesInFiles(File dir) {
+<span class="fc bfc" id="L1879" title="All 2 branches covered.">        if (dir.isDirectory()) {</span>
+<span class="fc" id="L1880">            String path = dir.getAbsolutePath();</span>
+
+<span class="fc bfc" id="L1882" title="All 2 branches covered.">            for (File file : fichiersAnalyse) {</span>
+<span class="fc" id="L1883">                File parent = file.getParentFile();</span>
+<span class="fc" id="L1884">                String chemin = parent.getAbsolutePath();</span>
+
+<span class="pc bpc" id="L1886" title="1 of 2 branches missed.">                if (!parent.equals(dir)</span>
+<span class="fc bfc" id="L1887" title="All 2 branches covered.">                        &amp;&amp; chemin.startsWith(path)) {</span>
+<span class="fc" id="L1888">                    return true;</span>
+                }
+<span class="fc" id="L1890">            }</span>
+
+<span class="fc" id="L1892">            return false;</span>
+        }
+
+<span class="fc" id="L1895">        return false;</span>
+    }
+
+    @Override
+    public void ajouterObservateur(Observateur ob) { // tester
+<span class="pc bpc" id="L1900" title="1 of 2 branches missed.">        if (!observateurs.contains(ob)) {</span>
+<span class="fc" id="L1901">            observateurs.add(ob);</span>
+        }
+<span class="fc" id="L1903">    }</span>
+
+    @Override
+    public void aviserObservateurs() { //tester
+<span class="fc bfc" id="L1907" title="All 2 branches covered.">        for (Observateur ob : observateurs) {</span>
+<span class="fc" id="L1908">            ob.changementEtat();</span>
+<span class="fc" id="L1909">        }</span>
+<span class="fc" id="L1910">    }</span>
+
+    @Override
+    public synchronized void aviserObservateurs(Enum&lt;?&gt; property, Object o) { // tester
+<span class="fc bfc" id="L1914" title="All 2 branches covered.">        for (Observateur ob : observateurs) {</span>
+<span class="fc" id="L1915">            ob.changementEtat(property, o);</span>
+<span class="fc" id="L1916">        }</span>
+<span class="fc" id="L1917">    }</span>
+
+    @Override
+    public void retirerObservateur(Observateur ob) { //tester
+<span class="fc" id="L1921">        observateurs.remove(ob);</span>
+<span class="fc" id="L1922">    }</span>
+
+    public static void trier(List&lt;File&gt; fichiers, MatriceTriangulaire resultats, Tri.Type type) {
+<span class="pc bpc" id="L1925" title="1 of 4 branches missed.">        if (fichiers != null &amp;&amp; resultats != null) {</span>
+<span class="pc bpc" id="L1926" title="1 of 2 branches missed.">            if (fichiers.size() == resultats.getLength()) {</span>
+<span class="fc" id="L1927">                Tri.trier(fichiers, resultats, type);</span>
+            }
+        }
+<span class="fc" id="L1930">    }</span>
+
+    /**
+     * Retourne la valeur booléenne attestant si la restauration s'est bien
+     * passée ou non.
+     *
+     * @return erreurRestauration = valeur booléenne vraie si le projet n'a pas
+     * bien été restauré.
+     */
+    public boolean getEtatRestauration() {
+<span class="nc" id="L1940">        return erreurRestauration;</span>
+    }
+
+    public void setInvalide(boolean b) {
+<span class="nc" id="L1944">        invalide = b;</span>
+<span class="nc" id="L1945">    }</span>
+    
+    public boolean getInvalide(){
+<span class="nc" id="L1948">        return invalide;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

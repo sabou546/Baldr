@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SaveAndRestore.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Baldr</a> &gt; <a href="index.source.html" class="el_package">ca.qc.bdeb.baldr.noyau</a> &gt; <span class="el_source">SaveAndRestore.java</span></div><h1>SaveAndRestore.java</h1><pre class="source lang-java linenums">/*
+ * SaveAndRestore.java
+ *
+ * Created on 14 mai 2007, 11:00
+ * $Id: SaveAndRestore.java 200 2007-05-26 23:02:02Z zeta $
+ */
+package ca.qc.bdeb.baldr.noyau;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+/**
+ * Une classe responsable de sauvegarder et de restaurer les tâches des
+ * componsantes du programme qui sont sauvegardable.
+ *
+ * @see Savable
+ * @author zeta
+ */
+public class SaveAndRestore {
+
+    /**
+     * L'objet à sauvegarder.
+     */
+    private Savable obj;
+
+    /**
+     * Créée une nouvelle instance de sauvegarde.
+     *
+     * @param object L'objet à sauvegarder
+     */
+<span class="fc" id="L49">    public SaveAndRestore(Savable object) {</span>
+<span class="fc" id="L50">        obj = object;</span>
+<span class="fc" id="L51">    }</span>
+
+    /**
+     * Pour la sauvegarde si contient un sommaire
+     * @param object l'objet`a sauvegarder
+     * @param projet le projet courant
+     */
+    
+    /**
+     * Remplace des caractères spécifiques à l'aide du code XML approprié.
+     *
+     * @param str La chaine à corriger
+     * @return La chaine corrigée
+     */
+    public static String escape(String str) {
+<span class="fc" id="L66">        return str.replace(&quot;&amp;&quot;, &quot;&amp;amp;&quot;).replace(&quot;&lt;&quot;, &quot;&amp;lt;&quot;);</span>
+
+    }
+
+    /**
+     * Sauvegarde l'élément dans le fichier spécifié, selon le format choisi.
+     *
+     * @param fichier Le fichier dans lequel sauvegarder
+     * @throws ca.qc.bdeb.baldr.noyau.RienASauvegarderException
+     */
+    public void save(File fichier) throws RienASauvegarderException {
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (obj == null) {</span>
+<span class="fc" id="L78">            throw new RienASauvegarderException();</span>
+        } else {
+
+<span class="fc" id="L81">            String informations = creationInformationSauvegarder();</span>
+
+<span class="fc" id="L83">            BufferedWriter out = ouvrirEnEcriture(fichier);</span>
+
+<span class="fc" id="L85">            ecritureDonnee(out, informations);</span>
+        }
+<span class="fc" id="L87">    }</span>
+
+    /**
+     * Ouvre un fichier dans le but d'y écrire, selon un format donné.
+     *
+     * @param fichier Le fichier à ouvrir
+     * @return Un écrivain en mode tampon
+     */
+    private static BufferedWriter ouvrirEnEcriture(File fichier) {
+        OutputStream stream;
+
+<span class="fc" id="L98">        BufferedWriter out = null;</span>
+
+        try {
+<span class="fc" id="L101">            stream = new FileOutputStream(fichier);</span>
+
+<span class="fc" id="L103">            out = new BufferedWriter(new OutputStreamWriter(stream));</span>
+<span class="nc" id="L104">        } catch (FileNotFoundException ex) {</span>
+<span class="nc" id="L105">            ex.printStackTrace();</span>
+<span class="fc" id="L106">        }</span>
+
+<span class="fc" id="L108">        return out;</span>
+    }
+
+    /**
+     * Crée les informations de sauvegarde en XML.
+     *
+     * @return Les informations de sauvegarde, en XML
+     */
+    private String creationInformationSauvegarder() {
+<span class="fc" id="L117">        StringBuilder str = new StringBuilder();</span>
+
+        // TODO(pascal) : Ça serait bien d'implémenter une indentation du
+        // code XML généré, question de rendre le fichier de sauvegarde
+        // plus lisible par un être humain!
+<span class="fc" id="L122">        str.append(&quot;&lt;?xml version=\&quot;1.0\&quot; ?&gt;\n&quot;);</span>
+<span class="fc" id="L123">        str.append(&quot;&lt;save&gt;\n&quot;);</span>
+<span class="fc" id="L124">        str.append(obj.toXml()); // Écrit les onglets, réf. : Noyau.toXml()        </span>
+<span class="fc" id="L125">        str.append(&quot;&lt;/save&gt;\n&quot;);</span>
+
+<span class="fc" id="L127">        return str.toString();</span>
+    }
+
+    /**
+     * Écrit les données fournies dans le fichier de sortie fourni.
+     *
+     * @param out Le fichier de sortie
+     * @param informations Les données à écrire
+     */
+    private static void ecritureDonnee(
+            BufferedWriter out, String informations) {
+        try {
+<span class="fc" id="L139">            out.write(informations);</span>
+<span class="nc" id="L140">        } catch (IOException ex) {</span>
+<span class="nc" id="L141">            ex.printStackTrace();</span>
+        } finally {
+            try {
+<span class="fc" id="L144">                out.close();</span>
+<span class="nc" id="L145">            } catch (IOException ex) {</span>
+<span class="nc" id="L146">                ex.printStackTrace();</span>
+<span class="fc" id="L147">            }</span>
+        }
+<span class="fc" id="L149">    }</span>
+
+    /**
+     * Restaure l'application dans un état donné depuis un fichier de
+     * sauvegarde.
+     *
+     * @param fichier Le fichier depuis lequel se retaurer
+     */
+    public void restore(File fichier) {
+<span class="fc" id="L158">        BufferedReader reader = ouvrirEnLecture(fichier);</span>
+<span class="fc" id="L159">        Node node = lectureDonnee(reader);</span>
+        
+<span class="pc bpc" id="L161" title="2 of 4 branches missed.">        if (node != null &amp;&amp; &quot;save&quot;.equals(node.getNodeName())) {</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">            for (int i = 0; i &lt; node.getChildNodes().getLength(); i++) {</span>
+<span class="fc" id="L163">                obj.fromDom(node.getChildNodes().item(i));</span>
+                // System.out.println(node.getChildNodes().item(i) + &quot;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;*&amp;&quot;);
+            }
+        }
+
+        
+<span class="fc" id="L169">    }</span>
+
+    /**
+     * Ouvre un fichier en lecture, selon un format donné.
+     *
+     * @param fichier Le fichier à ouvrir
+     * @return Le flux du fichier, en mode tampon
+     */
+    private static BufferedReader ouvrirEnLecture(File fichier) {
+<span class="fc" id="L178">        BufferedReader reader = null;</span>
+
+        try {
+<span class="fc" id="L181">            FileInputStream file = new FileInputStream(fichier);</span>
+<span class="fc" id="L182">            InputStream st = file;</span>
+
+<span class="fc" id="L184">            reader = new BufferedReader(new InputStreamReader(st));</span>
+<span class="nc" id="L185">        } catch (FileNotFoundException ex) {</span>
+<span class="nc" id="L186">            ex.printStackTrace();</span>
+<span class="fc" id="L187">        }</span>
+
+<span class="fc" id="L189">        return reader;</span>
+    }
+
+    /**
+     * Lit les données d'un fichier XML et renvoie la racine du document.
+     *
+     * @param reader La source d'où lire le fichier XML
+     * @return La racine du document XML lu
+     */
+    private Node lectureDonnee(BufferedReader reader) {
+<span class="fc" id="L199">        Node node = null;</span>
+
+        try {
+            DocumentBuilderFactory factory
+<span class="fc" id="L203">                    = DocumentBuilderFactory.newInstance();</span>
+
+<span class="fc" id="L205">            DocumentBuilder builder = factory.newDocumentBuilder();</span>
+
+<span class="fc" id="L207">            Document doc = builder.parse(new InputSource(reader));</span>
+
+<span class="fc" id="L209">            node = doc.getChildNodes().item(0);</span>
+
+            // temp
+//            System.out.println(doc.getChildNodes().item(0).getNodeName());
+//            System.out.println(doc.getChildNodes().item(1).getNodeName());
+//            System.out.println(doc.getChildNodes().item(2).getNodeName());
+
+<span class="nc" id="L216">        } catch (ParserConfigurationException | SAXException | IOException ex) {</span>
+<span class="nc" id="L217">            System.err.println(&quot;[ERREUR] Impossible d'ouvrir le fichier XML : &quot;</span>
+<span class="nc" id="L218">                    + ex.getLocalizedMessage());</span>
+        } finally {
+            try {
+<span class="fc" id="L221">                reader.close();</span>
+<span class="nc" id="L222">            } catch (IOException ex) {</span>
+<span class="nc" id="L223">                System.err.println(&quot;[ERREUR] Impossible de fermer le fichier &quot;</span>
+<span class="nc" id="L224">                        + &quot;en lecture : &quot; + ex.getLocalizedMessage());</span>
+<span class="fc" id="L225">            }</span>
+        }
+
+<span class="fc" id="L228">        return node;</span>
+    }
+
+    /**
+     * Exportation d'un tâche dans un fichier déjà créé.
+     *
+     * @param s Une tâche à sauvegarder
+     * @param fichier Le fichier dans lequel exporter la tâche
+     */
+    public static void exportTo(Savable s, File fichier) {
+
+<span class="fc" id="L239">        StringBuilder str = new StringBuilder();</span>
+<span class="fc" id="L240">        BufferedReader reader = ouvrirEnLecture(fichier);</span>
+
+        String temp;
+        try {
+<span class="fc bfc" id="L244" title="All 2 branches covered.">            while ((temp = reader.readLine()) != null) {</span>
+<span class="fc" id="L245">                str.append(temp);</span>
+<span class="fc" id="L246">                str.append(&quot;\n&quot;);</span>
+            }
+
+<span class="fc" id="L249">            str.insert(str.indexOf(&quot;&lt;/save&gt;&quot;), s.toXml());</span>
+<span class="nc" id="L250">        } catch (IOException ex) {</span>
+<span class="nc" id="L251">            return;</span>
+        } finally {
+            try {
+<span class="fc" id="L254">                reader.close();</span>
+<span class="nc" id="L255">            } catch (IOException ex) {</span>
+<span class="nc" id="L256">                ex.printStackTrace();</span>
+<span class="fc" id="L257">            }</span>
+        }
+
+<span class="fc" id="L260">        BufferedWriter out = ouvrirEnEcriture(fichier);</span>
+
+<span class="fc" id="L262">        ecritureDonnee(out, str.toString());</span>
+<span class="fc" id="L263">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

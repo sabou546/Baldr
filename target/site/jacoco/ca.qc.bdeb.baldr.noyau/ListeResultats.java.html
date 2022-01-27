@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ListeResultats.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Baldr</a> &gt; <a href="index.source.html" class="el_package">ca.qc.bdeb.baldr.noyau</a> &gt; <span class="el_source">ListeResultats.java</span></div><h1>ListeResultats.java</h1><pre class="source lang-java linenums">package ca.qc.bdeb.baldr.noyau;
+
+import ca.qc.bdeb.baldr.utils.FilePair;
+import java.io.File;
+import java.util.TreeMap;
+
+/**
+ * Regroupement des résultats d'analyse.
+ * 
+ * @author Olivier Lavigne
+ */
+public class ListeResultats {
+    /**
+     * Liste des résultats d'analyse
+     */
+    private TreeMap&lt;FilePair, Float&gt; resultats;
+    
+    /**
+     * Instancie une liste de résultats d'analyse
+     */
+<span class="fc" id="L21">    public ListeResultats() {</span>
+<span class="fc" id="L22">        resultats = new TreeMap();</span>
+<span class="fc" id="L23">    }</span>
+    
+    /**
+     * Ajoute un résultat d'analyse à la liste
+     * @param fichier1 Le premier fichier analysé
+     * @param fichier2 Le deuxième fichier analysé
+     * @param resultat Le résultat de la comparaison des deux fichiers 
+     */
+    public synchronized void ajouterResultat(File fichier1, File fichier2, float resultat) {
+        FilePair paire;
+<span class="fc" id="L33">        paire = new FilePair(fichier1, fichier2);</span>
+<span class="fc" id="L34">        resultats.put(paire, resultat);</span>
+<span class="fc" id="L35">    }</span>
+    
+    /**
+     * Vérifie si la paire de fichiers a déjà été analysée
+     * @param fichier1 Le premier fichier analysé
+     * @param fichier2 Le deuxième fichier analysé
+     * @return True si un résultat existe pour la paire de fichiers
+     */
+    public synchronized boolean resultatExiste(File fichier1, File fichier2) {
+<span class="fc" id="L44">        FilePair paire = new FilePair(fichier1, fichier2);</span>
+<span class="fc" id="L45">        return resultats.containsKey(paire);</span>
+    }
+    
+    /**
+     * Retourne le résultat d'une comparaison de fichiers déjà complétée.
+     * @param fichier1 Le premier fichier
+     * @param fichier2 Le deuxième fichier
+     * @return Le score de comparaison des deux fichiers
+     */
+    public synchronized float getResultat(File fichier1, File fichier2) {
+<span class="fc" id="L55">        FilePair paire = new FilePair(fichier1, fichier2);</span>
+<span class="fc" id="L56">        return resultats.get(paire);</span>
+    }
+    
+    /**
+     * Vide la liste des résultats
+     */
+    public synchronized void viderListe() {
+<span class="fc" id="L63">        resultats.clear();</span>
+<span class="fc" id="L64">    }</span>
+        
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

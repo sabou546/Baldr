@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MatriceTriangulaire.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Baldr</a> &gt; <a href="index.source.html" class="el_package">ca.qc.bdeb.baldr.noyau</a> &gt; <span class="el_source">MatriceTriangulaire.java</span></div><h1>MatriceTriangulaire.java</h1><pre class="source lang-java linenums">package ca.qc.bdeb.baldr.noyau;
+
+/**
+ * Représente une matrice triangulaire (matrice dont la diagonale est nulle).
+ *
+ * @author Équipe de dev. Baldr
+ */
+public class MatriceTriangulaire implements Cloneable {
+
+    /**
+     * Le contenu de la matrice : les résultats des comparaisons.
+     */
+    private float[][] res;
+
+    /**
+     * Le nombre d'itérations.
+     */
+    private int nbIterations;
+
+    // TODO(pascal) : Déterminer ce que représente cette variable :
+    // un numéro d'analyse (dans quel contexte l'utilise-t-on alors?)
+    // ou le nombre d'analyses contenues dans la matrice? Ou autre chose?
+    private int numAnalyse;
+
+    /**
+     * Créée une nouvelle instance de MatriceTriangulaire, avec un nombre de
+     * fichiers défini.
+     *
+     * @param nbFichier Le nombre de fichiers contenus dans l'analyse.
+     */
+<span class="fc" id="L31">    public MatriceTriangulaire(int nbFichier) {</span>
+<span class="fc" id="L32">        res = new float[nbFichier][];</span>
+
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        for (int i = 0; i &lt; nbFichier; i++) {</span>
+<span class="fc" id="L35">            res[i] = new float[i + 1];</span>
+
+<span class="fc bfc" id="L37" title="All 2 branches covered.">            for (int j = 0; j &lt; i + 1; j++) {</span>
+<span class="fc" id="L38">                res[i][j] = -1;</span>
+
+<span class="fc bfc" id="L40" title="All 2 branches covered.">                if (i == j) {</span>
+<span class="fc" id="L41">                    res[i][j] = 0;</span>
+                } else {
+<span class="fc" id="L43">                    this.numAnalyse++;</span>
+                }
+            }
+        }
+
+<span class="fc" id="L48">        this.nbIterations = calculerNbIterations();</span>
+<span class="fc" id="L49">    }</span>
+    
+    @Override
+    public MatriceTriangulaire clone() throws CloneNotSupportedException {
+<span class="fc" id="L53">        super.clone();</span>
+        
+<span class="fc" id="L55">        MatriceTriangulaire copie = new MatriceTriangulaire(res.length);</span>
+        
+<span class="fc" id="L57">        copie.res = res.clone();</span>
+<span class="fc" id="L58">        copie.nbIterations = nbIterations;</span>
+<span class="fc" id="L59">        copie.numAnalyse = numAnalyse;</span>
+        
+<span class="fc" id="L61">        return copie;</span>
+    }
+
+    /**
+     * Échange des valeurs de place dans la matrice.
+     *
+     * @param i La rangée de la matrice.
+     * @param j La colonne de la matrice.
+     */
+    public void echangerValeurs(int i, int j) {
+<span class="fc" id="L71">        int x = 0;</span>
+<span class="fc" id="L72">        int y = 0;</span>
+
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (i &gt; j) {</span>
+<span class="fc" id="L75">            int temp = i;</span>
+<span class="fc" id="L76">            i = j;</span>
+<span class="fc" id="L77">            j = temp;</span>
+        }
+
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        for (int iterateur = 0; iterateur &lt; nbIterations; iterateur++) {</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">            if (x == i) {</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">                if (y == i) {</span>
+<span class="fc" id="L83">                    float temporaire = res[i][i];</span>
+
+<span class="fc" id="L85">                    setRes(i, i, res[j][j]);</span>
+<span class="fc" id="L86">                    setRes(j, j, temporaire);</span>
+<span class="fc" id="L87">                } else {</span>
+<span class="fc" id="L88">                    float temporaire = res[i][y];</span>
+
+<span class="fc" id="L90">                    setRes(i, y, res[j][y]);</span>
+<span class="fc" id="L91">                    setRes(j, y, temporaire);</span>
+<span class="fc" id="L92">                }</span>
+<span class="fc bfc" id="L93" title="All 4 branches covered.">            } else if (x &gt; i &amp;&amp; x &lt; j) {</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">                if (y == i) {</span>
+<span class="fc" id="L95">                    float temporaire = res[x][i];</span>
+
+<span class="fc" id="L97">                    setRes(x, i, res[j][x]);</span>
+<span class="fc" id="L98">                    setRes(j, x, temporaire);</span>
+<span class="fc" id="L99">                }</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">            } else if (x &gt; j) {</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">                if (y == i) {</span>
+<span class="fc" id="L102">                    float temporaire = res[x][i];</span>
+
+<span class="fc" id="L104">                    setRes(x, i, res[x][j]);</span>
+<span class="fc" id="L105">                    setRes(x, j, temporaire);</span>
+                }
+            }
+
+<span class="fc bfc" id="L109" title="All 2 branches covered.">            if (x == y) {</span>
+<span class="fc" id="L110">                y = 0;</span>
+<span class="fc" id="L111">                x++;</span>
+            } else {
+<span class="fc" id="L113">                y++;</span>
+            }
+        }
+<span class="fc" id="L116">    }</span>
+
+    /**
+     * Recrée la matrice en enlevant la ligne [indice] et la colonne [indice].
+     *
+     * @param indice Indice de la ligne et de la colonne à enlever.
+     */
+    public void enleverLigneEtColonne(int indice) {
+<span class="fc" id="L124">        float[][] newRes = new float[res.length - 1][];</span>
+
+<span class="fc" id="L126">        numAnalyse = 0;</span>
+
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        for (int i = 0, newi = 0; i &lt; res.length; i++) {</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">            if (i != indice) {</span>
+<span class="fc" id="L130">                newRes[newi] = new float[newi + 1];</span>
+
+<span class="fc bfc" id="L132" title="All 2 branches covered.">                for (int j = 0, newj = 0; j &lt; res[i].length; j++) {</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">                    if (j != indice) {</span>
+<span class="fc" id="L134">                        newRes[newi][newj] = res[i][j];</span>
+<span class="fc" id="L135">                        newj++;</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">                        if (newi != newj) {</span>
+<span class="fc" id="L137">                            numAnalyse++;</span>
+                        }
+                    }
+                }
+<span class="fc" id="L141">                newi++;</span>
+            }
+        }
+
+<span class="fc" id="L145">        res = newRes;</span>
+<span class="fc" id="L146">        nbIterations = calculerNbIterations();</span>
+      
+<span class="fc" id="L148">    }</span>
+
+    /**
+     * Retourne le nombre d'itérations nécessaires pour parcourir toute la
+     * matrice.
+     *
+     * @return Le nombre d'itérations pour parcourir le tableau.
+     */
+    private int calculerNbIterations() {
+<span class="fc" id="L157">        int somme = 0;</span>
+
+<span class="fc bfc" id="L159" title="All 2 branches covered.">        for (int i = 0; i &lt;= res.length; i++) {</span>
+<span class="fc" id="L160">            somme += i;</span>
+        }
+
+<span class="fc" id="L163">        return somme;</span>
+    }
+
+    /**
+     * Permet d'assigner le résultat dans une cellule de la matrice.
+     *
+     * @param i La coordonnée de la rangée de la cellule.
+     * @param j La coordonnée de la colonne de la cellule.
+     * @param val La valeur à insérer dans la cellule.
+     */
+    public void setRes(int i, int j, float val) {
+<span class="fc bfc" id="L174" title="All 2 branches covered.">        if (res[i].length &gt; j) {</span>
+<span class="fc" id="L175">            res[i][j] = val;</span>
+        } else {
+<span class="fc" id="L177">            res[j][i] = val;</span>
+        }
+<span class="fc" id="L179">    }</span>
+
+    /**
+     * Retourne le plus petit résultat d'une rangée donnée.
+     *
+     * @param i La coordonnée de la rangée dans laquelle chercher.
+     * @return Le plus petit résultat de la rangée.
+     */
+    public float getMinRes(int i) {
+<span class="fc" id="L188">        float minRes = -1;</span>
+
+<span class="fc bfc" id="L190" title="All 2 branches covered.">        for (int j = 0; j &lt; res.length; j++) {</span>
+<span class="pc bpc" id="L191" title="1 of 8 branches missed.">            if (i &gt; j</span>
+                    &amp;&amp; (minRes == -1 || res[i][j] &lt; minRes)
+                    &amp;&amp; res[i][j] != 0) {
+<span class="fc" id="L194">                minRes = res[i][j];</span>
+<span class="pc bpc" id="L195" title="1 of 8 branches missed.">            } else if (i &lt; j</span>
+                    &amp;&amp; (minRes == -1 || res[j][i] &lt; minRes)
+                    &amp;&amp; res[j][i] != 0) {
+<span class="fc" id="L198">                minRes = res[j][i];</span>
+            }
+        }
+
+<span class="fc" id="L202">        return minRes;</span>
+    }
+
+    /**
+     * Retourne le résultat contenu à une cellule donnée.
+     *
+     * @param i La coordonnée de la rangée de la cellule.
+     * @param j La coordonnée de la colonne de la cellule.
+     * @return Le résultat contenu à cette cellule.
+     */
+    public float getResAt(int i, int j) {
+<span class="fc" id="L213">        return res[i][j];</span>
+    }
+
+    // TODO(pascal) : Écrire la Javadoc lorsque sera trouvée la signification
+    // de &quot;numAnalyse&quot;.
+    public int getNumAnalyse() {
+<span class="fc" id="L219">        return numAnalyse;</span>
+    }
+
+    /**
+     * Retourne le résultat contenu à une cellule donnée de la matrice.
+     *
+     * @param i La coordonnée de la rangée de la cellule.
+     * @param j La coordonnée de la colonne de la cellule.
+     * @return Le résultat contenu à la cellule.
+     */
+    public float getRes(int i, int j) {
+<span class="fc bfc" id="L230" title="All 2 branches covered.">        if (res[i].length &gt; j) {</span>
+<span class="fc" id="L231">            return res[i][j];</span>
+        } else {
+<span class="fc" id="L233">            return res[j][i];</span>
+        }
+
+    }
+
+    // TODO(pascal) : Trouver ce que fait exactement la méthode pour
+    // pouvoir rédiger la Javadoc correspondante.
+    public int compterAnalyse() {
+<span class="fc" id="L241">        int compteur = 0;</span>
+
+<span class="fc" id="L243">        int x = 0;</span>
+<span class="fc" id="L244">        int y = 0;</span>
+
+<span class="fc bfc" id="L246" title="All 2 branches covered.">        for (int i = 0; i &lt; nbIterations; i++) {</span>
+
+<span class="fc bfc" id="L248" title="All 2 branches covered.">            if (res[x][y] == -1) {</span>
+<span class="fc" id="L249">                compteur++;</span>
+            }
+
+<span class="fc bfc" id="L252" title="All 2 branches covered.">            if (x == y) {</span>
+<span class="fc" id="L253">                y = 0;</span>
+<span class="fc" id="L254">                x++;</span>
+            } else {
+<span class="fc" id="L256">                y++;</span>
+            }
+        }
+
+<span class="fc" id="L260">        return compteur;</span>
+    }
+
+    /**
+     * Permet d'accéder à toutes les valeurs de la matrice.
+     *
+     * @return Les valeurs contenues dans la matrice.
+     */
+    public float[][] getValues() {
+<span class="fc" id="L269">        return res;</span>
+    }
+
+    /**
+     * Permet d'accéder à la longueur totale de la matrice.
+     *
+     * @return La longueur totale de la matrice.
+     */
+    public int getLength() {
+<span class="fc" id="L278">        return res.length;</span>
+    }
+
+    /**
+     * Retourne la plus petite et la plus grande valeurs, en excluant les zéros.
+     *
+     * @return Les deux éléments trouvés, dans un tableau.
+     */
+    public float[] getMinMaxValues() {
+        // Initialisées pour que le compilateur soit content.
+<span class="fc" id="L288">        float min = 0, max = 0;</span>
+
+        // A trouvé des valeurs != 0 ?
+<span class="fc" id="L291">        boolean valsTrouvees = false;</span>
+
+<span class="fc bfc" id="L293" title="All 2 branches covered.">        for (float[] ligne : res) {</span>
+<span class="fc bfc" id="L294" title="All 2 branches covered.">            for (float val : ligne) {</span>
+<span class="fc bfc" id="L295" title="All 2 branches covered.">                if (val != 0) {</span>
+<span class="fc bfc" id="L296" title="All 2 branches covered.">                    if (!valsTrouvees) {</span>
+<span class="fc" id="L297">                        min = max = val;</span>
+<span class="fc" id="L298">                        valsTrouvees = true;</span>
+                    } else {
+<span class="fc bfc" id="L300" title="All 2 branches covered.">                        if (val &lt; min) {</span>
+<span class="fc" id="L301">                            min = val;</span>
+<span class="pc bpc" id="L302" title="1 of 2 branches missed.">                        } else if (val &gt; max) {</span>
+<span class="fc" id="L303">                            max = val;</span>
+                        }
+                    }
+                }
+            }
+        }
+
+<span class="fc bfc" id="L310" title="All 2 branches covered.">        if (valsTrouvees) {</span>
+<span class="fc" id="L311">            return new float[]{min, max};</span>
+        } else {
+<span class="fc" id="L313">            return new float[]{0, 0};</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

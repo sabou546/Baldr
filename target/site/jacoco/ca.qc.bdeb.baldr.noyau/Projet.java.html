@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Projet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Baldr</a> &gt; <a href="index.source.html" class="el_package">ca.qc.bdeb.baldr.noyau</a> &gt; <span class="el_source">Projet.java</span></div><h1>Projet.java</h1><pre class="source lang-java linenums">package ca.qc.bdeb.baldr.noyau;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import org.w3c.dom.Node;
+
+/**
+ * Un projet contient plusieurs tâches et peut être sauvegardé dans un fichier
+ * et ré-ouvert.
+ *
+ * @author mbernard
+ */
+public class Projet implements Savable {
+
+<span class="fc" id="L16">    public boolean sommaireExiste = false;</span>
+
+<span class="fc" id="L18">    private File lastFile = null;</span>
+
+    /**
+     * Les tâches contenues par le projet.
+     */
+    private final List&lt;Task&gt; tasks;
+
+    /**
+     * Vrai si quelque chose a changé dans le projet, faux sinon.
+     */
+<span class="fc" id="L28">    private boolean modifie = false;</span>
+
+    /**
+     * Le noyau qui contient le projet.
+     */
+    private final Noyau noyau;
+
+    /**
+     * La tache sommaire globale.
+     */
+<span class="fc" id="L38">    private Sommaire tacheSommaire = null;</span>
+
+    /**
+     * Gestionnaire des listes des résultats de comparaison de chaque paire de
+     * fichiers
+     */
+    private GestionnaireResultats gestResult;
+
+    /**
+     * Crée un nouveau projet.
+     *
+     * @param noyau Le noyau qui contient le projet.
+     */
+<span class="fc" id="L51">    public Projet(Noyau noyau) {</span>
+<span class="fc" id="L52">        this.noyau = noyau;</span>
+
+<span class="fc" id="L54">        tasks = new ArrayList();</span>
+<span class="fc" id="L55">        gestResult = new GestionnaireResultats();</span>
+<span class="fc" id="L56">    }</span>
+
+    public File getLastFile() {
+<span class="fc" id="L59">        return lastFile;</span>
+    }
+
+    public void setLastFile(File lastFile) {
+<span class="fc" id="L63">        modifie = true;</span>
+
+<span class="fc" id="L65">        this.lastFile = lastFile;</span>
+
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        if (lastFile == null) {</span>
+<span class="fc" id="L68">            modifie = false;</span>
+        }
+<span class="fc" id="L70">    }</span>
+
+    /**
+     * Permet d'obtenir l'attribut &quot;modifie&quot; du projet.
+     *
+     * @return
+     */
+    public boolean getModifie() {
+<span class="fc" id="L78">        return modifie;</span>
+    }
+
+    /**
+     * Permet d'accéder au noyau associé au projet.
+     *
+     * @return Le noyau associé au projet.
+     */
+    public Noyau getNoyau() {
+<span class="fc" id="L87">        return noyau;</span>
+    }
+
+    /**
+     * Créée une nouvelle tâche de base.
+     *
+     * @return La nouvelle tâche.
+     */
+    public Task createTask() {
+<span class="fc" id="L96">        Task nouvelleTask = new Task();</span>
+<span class="fc" id="L97">        nouvelleTask.setPrefs(noyau.getPrefs());</span>
+
+<span class="fc" id="L99">        registerTask(nouvelleTask);</span>
+
+<span class="fc" id="L101">        return nouvelleTask;</span>
+    }
+
+    /**
+     * Créée une nouvelle tâche associée à un numéro.
+     *
+     * @param i Le numéro de référence de l'analyse.
+     * @return La nouvelle tâche ainsi créée.
+     */
+    public Task createTask(int i) {
+
+<span class="fc" id="L112">        Task nouvelleTask = new Task();</span>
+<span class="fc" id="L113">        nouvelleTask.setPrefs(noyau.getPrefs());</span>
+<span class="fc" id="L114">        nouvelleTask.setGestionnaireResultats(gestResult);</span>
+
+<span class="fc" id="L116">        registerTask(i, nouvelleTask);</span>
+
+<span class="fc bfc" id="L118" title="All 2 branches covered.">        if (tasks.size() == 1) {</span>
+            // C'est la première tâche vide ajoutée à un nouveau projet,
+            // donc le projet n'est pas réellement modifié.
+<span class="fc" id="L121">            modifie = false;</span>
+        }
+
+<span class="fc" id="L124">        return nouvelleTask;</span>
+    }
+
+    /**
+     * Enregistre une tâche dans la liste des tâches.
+     *
+     * @param i Le numéro de la tâche.
+     * @param tsk La tâche à enregistrer.
+     * @return La tâche, ou null si erreur.
+     */
+    private Task registerTask(int i, Task tsk) {
+<span class="fc" id="L135">        modifie = true;</span>
+
+<span class="fc" id="L137">        tasks.add(i, tsk);</span>
+<span class="fc" id="L138">        return tasks.get(i);</span>
+    }
+
+    /**
+     *
+     * @return La tache sommaire du projet.
+     */
+    public Sommaire getTacheSommaire() {
+<span class="fc" id="L146">        return tacheSommaire;</span>
+    }
+
+    /**
+     * Assigne la tache sommaire
+     *
+     * @param tacheSommaire La nouvelle tache sommaire
+     */
+    public void setTacheSommaire(Sommaire tacheSommaire) {
+<span class="fc" id="L155">        this.tacheSommaire = tacheSommaire;</span>
+<span class="fc" id="L156">    }</span>
+
+    /**
+     * Enregistre une tâche dans la liste des tâches.
+     *
+     * @param tsk La tâche à enregistrer.
+     */
+    private void registerTask(Task tsk) {
+<span class="fc" id="L164">        modifie = true;</span>
+<span class="fc" id="L165">        tasks.add(tsk);</span>
+<span class="fc" id="L166">    }</span>
+
+    /**
+     * Retire une tâche de la liste des tâches.
+     *
+     * @param tsk La tâche à retirer.
+     */
+    public void retirerTask(Task tsk) {
+<span class="fc" id="L174">        modifie = true;</span>
+<span class="fc" id="L175">        tasks.remove(tsk);</span>
+<span class="fc" id="L176">    }</span>
+
+    /**
+     * Duplique une tâche et l'enregistre.
+     *
+     * @param original La tâche à dupliquer.
+     * @return La nouvelle tâche.
+     */
+    public Task duplicateAndRegisterTask(Task original) {
+<span class="fc" id="L185">        Task copie = null;</span>
+
+        try {
+<span class="fc" id="L188">            copie = original.clone();</span>
+<span class="fc" id="L189">            copie.setGestionnaireResultats(gestResult);</span>
+<span class="nc" id="L190">        } catch (CloneNotSupportedException ex) {</span>
+            // TODO(pascal) : Affiche message d'erreur indiquant que la copie
+            // est impossible.
+<span class="fc" id="L193">        }</span>
+
+<span class="fc" id="L195">        registerTask(copie);</span>
+<span class="fc" id="L196">        return copie;</span>
+    }
+
+    public int findTaskTabIndex(Task analyse) {
+<span class="fc" id="L200">        int index = 0;</span>
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">        for (int i = 0; i &lt; tasks.size(); i++) {</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">            if (analyse == tasks.get(i)) {</span>
+<span class="fc" id="L203">                index = i;</span>
+<span class="fc" id="L204">                break;</span>
+            }
+        }
+<span class="fc" id="L207">        return index;</span>
+    }
+
+    public void restore(File f) {
+<span class="fc" id="L211">        SaveAndRestore sav = new SaveAndRestore(this);</span>
+<span class="fc" id="L212">        sav.restore(f);</span>
+<span class="fc" id="L213">        lastFile = f;</span>
+
+<span class="fc" id="L215">        modifie = false;</span>
+<span class="fc" id="L216">    }</span>
+
+    public File save(File f) throws RienASauvegarderException {
+<span class="fc" id="L219">        modifie = false;</span>
+
+<span class="fc" id="L221">        SaveAndRestore sav = new SaveAndRestore(this);</span>
+<span class="fc" id="L222">        sav.save(f);</span>
+
+<span class="fc" id="L224">        lastFile = f;</span>
+<span class="fc" id="L225">        return f;</span>
+    }
+
+    @Override
+    public StringBuffer toXml() {
+<span class="fc" id="L230">        StringBuffer str = new StringBuffer();</span>
+
+<span class="fc bfc" id="L232" title="All 2 branches covered.">        for (Task task : tasks) {</span>
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">            if (task != null) {</span>
+<span class="fc" id="L234">                str.append(task.toXml());</span>
+            }
+<span class="fc" id="L236">        }</span>
+
+<span class="fc" id="L238">        return str;</span>
+    }
+
+    @Override
+    public void fromDom(Node node) {
+<span class="fc bfc" id="L243" title="All 2 branches covered.">        if (&quot;onglet&quot;.equals(node.getNodeName())) {</span>
+            //Task pour verifier s'il le task est un sommaire ou non
+<span class="fc" id="L245">            Task xmlTestSommaire = new Task();</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">            if (xmlTestSommaire.xmlEstSommaire(node)) {</span>
+<span class="fc" id="L247">                Sommaire restoredSommaire = new Sommaire(tasks);</span>
+<span class="fc" id="L248">                restoredSommaire.setPrefs(noyau.getPrefs());</span>
+<span class="fc" id="L249">                restoredSommaire.fromDom(node);</span>
+<span class="fc" id="L250">                restoredSommaire.setJCheckBoxPreviewFiles(xmlTestSommaire.getJCheckBoxPreviewFiles());</span>
+<span class="fc" id="L251">                restoredSommaire.setJCheckBoxAnalyseConcatenation(xmlTestSommaire.getJCheckBoxAnalyseConcatenation());</span>
+<span class="fc" id="L252">                restoredSommaire.setPdfExtractor(xmlTestSommaire.getPdfExtractor());</span>
+<span class="fc" id="L253">                restoredSommaire.setPdfImages(xmlTestSommaire.getPdfImages());</span>
+<span class="fc" id="L254">                restoredSommaire.setCheckBoxCommentaires(xmlTestSommaire.getCheckBoxCommentaires());</span>
+<span class="fc" id="L255">                restoredSommaire.setCheckBoxWhitepsaces(xmlTestSommaire.getCheckBoxWhitepsaces());</span>
+<span class="fc" id="L256">                restoredSommaire.setIsProgressive(xmlTestSommaire.getIsProgressive());</span>
+                try {
+<span class="fc" id="L258">                    restoredSommaire.setRedLimit(Double.parseDouble(xmlTestSommaire.getRedLimitTxt()));</span>
+<span class="fc" id="L259">                    restoredSommaire.setRedLimitTxt(xmlTestSommaire.getRedLimitTxt());</span>
+<span class="nc" id="L260">                } catch (NumberFormatException e) {</span>
+<span class="nc" id="L261">                    restoredSommaire.setRedLimitTxt(xmlTestSommaire.getRedLimitTxt());</span>
+<span class="fc" id="L262">                }</span>
+                try {
+<span class="fc" id="L264">                    restoredSommaire.setYellowLimit(Double.parseDouble(xmlTestSommaire.getYellowLimitTxt()));</span>
+<span class="fc" id="L265">                    restoredSommaire.setYellowLimitTxt(xmlTestSommaire.getYellowLimitTxt());</span>
+<span class="nc" id="L266">                } catch (NumberFormatException e) {</span>
+<span class="nc" id="L267">                    restoredSommaire.setYellowLimitTxt(xmlTestSommaire.getYellowLimitTxt());</span>
+<span class="fc" id="L268">                }</span>
+                try {
+<span class="fc" id="L270">                    restoredSommaire.setGreenLimit(Double.parseDouble(xmlTestSommaire.getGreenLimitTxt()));</span>
+<span class="fc" id="L271">                    restoredSommaire.setGreenLimitTxt(xmlTestSommaire.getGreenLimitTxt());</span>
+<span class="nc" id="L272">                } catch (NumberFormatException e) {</span>
+<span class="nc" id="L273">                    restoredSommaire.setGreenLimitTxt(xmlTestSommaire.getGreenLimitTxt());</span>
+<span class="fc" id="L274">                }</span>
+<span class="fc" id="L275">                registerTask(restoredSommaire);</span>
+<span class="fc" id="L276">                this.sommaireExiste = true;</span>
+<span class="fc" id="L277">            } else {</span>
+<span class="fc" id="L278">                Task restoredTask = new Task();</span>
+<span class="fc" id="L279">                restoredTask.setPrefs(noyau.getPrefs());</span>
+<span class="fc" id="L280">                restoredTask.fromDom(node);</span>
+<span class="fc" id="L281">                registerTask(restoredTask);</span>
+<span class="fc" id="L282">                tasks.add(restoredTask);</span>
+            }
+        }
+
+<span class="fc" id="L286">    }</span>
+
+    /**
+     * Permet d'accéder aux tâches du projet.
+     *
+     * @return Les tâches du projet.
+     */
+    public List&lt;Task&gt; getTasks() {
+<span class="fc" id="L294">        return new ArrayList(tasks);</span>
+    }
+
+    /**
+     * Enlève toutes les tâches.
+     */
+    public void clearTasks() {
+<span class="fc" id="L301">        modifie = true;</span>
+<span class="fc" id="L302">        tasks.clear();</span>
+<span class="fc" id="L303">    }</span>
+
+    /**
+     * Créée une tâche sommaire en y ajoutant comme taches composantes toutes
+     * les taches déjà créer et leurs fichiers comme fichiers d'analyse.
+     *
+     * @param i L'index de la nouvelle tâche.
+     * @return La nouvelle tâche.
+     */
+    public Sommaire creerTacheSommaire(int i) {
+<span class="fc" id="L313">        modifie = true;</span>
+
+<span class="fc" id="L315">        Sommaire newSommaire = new Sommaire(new ArrayList(tasks));</span>
+<span class="fc" id="L316">        setTacheSommaire(newSommaire);</span>
+<span class="fc" id="L317">        newSommaire.setPrefs(noyau.getPrefs());</span>
+<span class="fc" id="L318">        newSommaire.setGestionnaireResultats(gestResult);</span>
+<span class="fc" id="L319">        newSommaire.setFichiers(newSommaire.creationFichierSommaire());</span>
+<span class="fc" id="L320">        tasks.add(i, newSommaire);</span>
+
+<span class="fc" id="L322">        return newSommaire;</span>
+    }
+
+    public boolean verifierFichiersDansAnalyses() {
+<span class="fc" id="L326">        boolean fichiersEnAnalyses = false;</span>
+
+<span class="fc bfc" id="L328" title="All 2 branches covered.">        for (Task task : tasks) {</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">            if (task.getTousFichiers() != null</span>
+<span class="fc bfc" id="L330" title="All 2 branches covered.">                    &amp;&amp; !task.getTousFichiers().isEmpty()) {</span>
+<span class="fc" id="L331">                fichiersEnAnalyses = true;</span>
+<span class="fc" id="L332">                break;</span>
+            }
+<span class="fc" id="L334">        }</span>
+<span class="fc" id="L335">        return fichiersEnAnalyses;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>
