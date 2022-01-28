@@ -19,13 +19,13 @@ jobs:
           #command: "echo Hello, World!"
   build:
     docker:
-      - image: "circleci/maven:3.8.1"
+      - image: circleci/maven:3.8.1
       - run:
           name: "build project with maven"
           command: mvn clean install
   test:
     docker:
-      - image: "circleci/maven:3.8.1"  
+      - image: circleci/maven:3.8.1
       - run:
           name: "test project with maven"
           command: mvn test
