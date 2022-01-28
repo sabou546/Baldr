@@ -22,15 +22,13 @@ jobs:
       - image: circleci/maven:3.8.1
       - run:
           name: "build project with maven"
-          command: mvn clean install
-          working_directory: ~/Baldr
+          command: mvn clean install Main.Java
   test:
     docker:
       - image: circleci/maven:3.8.1
       - run:
           name: "test project with maven"
-          command: mvn test
-          working_directory: ~/Baldr
+          command: mvn test Main.java
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
