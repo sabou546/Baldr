@@ -20,12 +20,16 @@ jobs:
   build:
     docker:
       - image: circleci/maven:3.8.1
+    steps:
+      - checkout
       - run:
           name: "build project with maven"
           command: mvn clean install Main.Java
   test:
     docker:
       - image: circleci/maven:3.8.1
+    steps:
+      - checkout
       - run:
           name: "test project with maven"
           command: mvn test Main.java
