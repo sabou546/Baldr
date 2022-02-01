@@ -24,7 +24,7 @@ jobs:
       - checkout
       - run:
           name: "build project with maven"
-          command: mvn clean install
+          command: mvn install
   test:
     docker:
       - image: circleci/openjdk:11-stretch
